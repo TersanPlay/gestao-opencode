@@ -22,12 +22,7 @@ Sistema de gestão empresarial (usuários, departamentos, visitantes) com autent
 # 1. Instalar dependências
 npm install
 
-# 2. Configurar variáveis ambiente (opcional)
-#    Copie e edite conforme necessário:
-#    MINELEAD_API_KEY=   (não usado atualmente, mantido para compatibilidade)
-INVERTEXTO_TOKEN=sua_chave_aqui
-
-# 3. Iniciar servidores (frontend + backend)
+# 2. Iniciar servidores (frontend + backend)
 npm run dev
 ```
 

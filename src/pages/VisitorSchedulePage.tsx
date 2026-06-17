@@ -14,10 +14,11 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { VisitorStatusBadge } from "@/components/shared/StatusBadge";
 import { getVisitors, getDepartments, getUsers, updateVisitor } from "@/services/api";
 import type { Visitor, Department, User } from "@/types";
+import { STATUS_ACTIONS } from "@/lib/visitor-utils";
 import { CalendarDate, Time, now, getLocalTimeZone, parseDate } from "@internationalized/date";
 import { JollyDatePicker } from "@/components/ui/date-range-picker";
 import { JollyTimeField } from "@/components/ui/datefield";
-import { CalendarCheck, Calendar, Building2, Plus, CheckCircle, XCircle, Send, Search, Clock } from "lucide-react";
+import { CalendarCheck, Calendar, Building2, Plus, CheckCircle, XCircle, Send, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 const purposeOptions = [
@@ -34,14 +35,6 @@ const purposeOptions = [
   "Visita institucional",
   "Visita escolar",
   "Outro motivo",
-];
-
-const statusActions: { status: Visitor["status"]; label: string; icon: typeof Send; nextStatus: Visitor["status"] }[] = [
-  { status: "scheduled", label: "Registrar Check-in", icon: Send, nextStatus: "checking_in" },
-  { status: "checking_in", label: "Iniciar Visita", icon: Send, nextStatus: "in_progress" },
-  { status: "in_progress", label: "Finalizar Visita", icon: CheckCircle, nextStatus: "completed" },
-  { status: "completed", label: "", icon: CheckCircle, nextStatus: "completed" },
-  { status: "cancelled", label: "", icon: XCircle, nextStatus: "cancelled" },
 ];
 
 export function VisitorSchedulePage() {
@@ -89,7 +82,7 @@ export function VisitorSchedulePage() {
   const getResponsibleName = (id?: string) => (id ? users.find((u) => u.id === id)?.name : undefined) || "—";
 
   const isScheduled = !!selected && ["scheduled","checking_in","in_progress","completed","cancelled"].includes(selected?.status || "");
-  const action = selected ? statusActions.find((a) => a.status === selected.status) : null;
+  const action = selected ? STATUS_ACTIONS.find((a) => a.status === selected.status) : null;
   const canAct = action && action.nextStatus !== selected?.status;
 
   const openScheduleModal = (v: Visitor) => {

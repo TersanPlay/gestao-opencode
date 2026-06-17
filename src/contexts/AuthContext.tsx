@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import type { UserRole, Resource, Action } from "@/types";
+import { can as checkPermission } from "@/lib/permissions";
 
-interface User {
+interface AuthUser {
   id: number;
   name: string;
   email: string;
@@ -10,7 +11,7 @@ interface User {
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -22,22 +23,8 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 const API = "/api/auth";
 
-const PERMISSIONS: Record<string, string[]> = {
-  admin: ["create:users", "read:users", "update:users", "delete:users",
-    "create:departments", "read:departments", "update:departments", "delete:departments",
-    "create:visitors", "read:visitors", "update:visitors", "delete:visitors",
-    "read:reports", "read:dashboard"],
-  gestor: ["create:users", "read:users", "update:users",
-    "read:departments",
-    "create:visitors", "read:visitors", "update:visitors",
-    "read:reports", "read:dashboard"],
-  assessor: ["create:visitors", "read:visitors", "update:visitors",
-    "read:reports", "read:dashboard"],
-  operator: ["create:visitors", "read:visitors", "read:dashboard"],
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -78,10 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const can = useCallback((action: Action, resource: Resource): boolean => {
-    if (!user) return false;
-    const perms = PERMISSIONS[user.role];
-    if (!perms) return false;
-    return perms.includes(`${action}:${resource}`);
+    return checkPermission(user?.role, action, resource);
   }, [user]);
 
   return (

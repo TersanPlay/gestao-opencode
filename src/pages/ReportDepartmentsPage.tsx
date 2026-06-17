@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { getReportDepartments } from "@/services/api";
 import type { ReportDepartments } from "@/types";
-import { ArrowLeft, Building2, Users, Clock, Calendar } from "lucide-react";
+import { ArrowLeft, Building2 } from "lucide-react";
 
 export function ReportDepartmentsPage() {
   const navigate = useNavigate();

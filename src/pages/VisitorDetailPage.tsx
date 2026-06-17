@@ -8,24 +8,9 @@ import { VisitorStatusBadge } from "@/components/shared/StatusBadge";
 import { PermissionGate } from "@/components/auth/PermissionGate";
 import { getVisitorById, getTimeline, getDepartments, getUsers, updateVisitor } from "@/services/api";
 import type { Visitor, TimelineEvent, Department, User } from "@/types";
-import { AlertTriangle, ArrowLeft, Building2, User as UserIcon, Calendar, Clock, CheckCircle, XCircle, Send, Pencil } from "lucide-react";
+import { STATUS_ACTIONS } from "@/lib/visitor-utils";
+import { AlertTriangle, ArrowLeft, Building2, User as UserIcon, Calendar, Clock, Pencil } from "lucide-react";
 import { toast } from "sonner";
-
-const statusActions: { status: Visitor["status"]; label: string; icon: typeof Send; nextStatus: Visitor["status"] }[] = [
-  { status: "scheduled", label: "Registrar Check-in", icon: Send, nextStatus: "checking_in" },
-  { status: "checking_in", label: "Iniciar Visita", icon: Send, nextStatus: "in_progress" },
-  { status: "in_progress", label: "Finalizar Visita", icon: CheckCircle, nextStatus: "completed" },
-  { status: "completed", label: "", icon: CheckCircle, nextStatus: "completed" },
-  { status: "cancelled", label: "", icon: XCircle, nextStatus: "cancelled" },
-];
-
-const statusColors: Record<string, string> = {
-  scheduled: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
-  checking_in: "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
-  in_progress: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
-  completed: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
-  cancelled: "bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300",
-};
 
 export function VisitorDetailPage() {
   const { id } = useParams();
@@ -48,7 +33,7 @@ export function VisitorDetailPage() {
   const deptName = departments.find((d) => d.id === visitor.departmentId)?.name || "—";
   const responsibleName = users.find((u) => u.id === visitor.responsibleId)?.name || "—";
 
-  const action = statusActions.find((a) => a.status === visitor.status);
+  const action = STATUS_ACTIONS.find((a) => a.status === visitor.status);
   const canAct = action && action.nextStatus !== visitor.status;
 
   const handleStatusChange = async (newStatus: Visitor["status"]) => {

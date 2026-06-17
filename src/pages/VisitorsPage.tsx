@@ -11,6 +11,7 @@ import { VisitorStatusBadge } from "@/components/shared/StatusBadge";
 import { PermissionGate } from "@/components/auth/PermissionGate";
 import { getVisitors, getDepartments, getUsers } from "@/services/api";
 import type { Visitor, Department, User } from "@/types";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, Calendar, Building2, Clock, CalendarPlus, Pencil } from "lucide-react";
 
 export function VisitorsPage() {
@@ -52,19 +53,20 @@ export function VisitorsPage() {
         <CardContent className="p-0">
           <div className="flex flex-wrap items-center gap-4 p-4 pb-0">
             <SearchInput value={search} onChange={setSearch} placeholder="Buscar visitante..." />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="flex h-9 rounded-xl border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="all">Todos os status</option>
-              <option value="registered">Registrado</option>
-              <option value="scheduled">Agendado</option>
-              <option value="checking_in">Check-in</option>
-              <option value="in_progress">Em andamento</option>
-              <option value="completed">Finalizado</option>
-              <option value="cancelled">Cancelado</option>
-            </select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-9 w-44 rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os status</SelectItem>
+                <SelectItem value="registered">Registrado</SelectItem>
+                <SelectItem value="scheduled">Agendado</SelectItem>
+                <SelectItem value="checking_in">Check-in</SelectItem>
+                <SelectItem value="in_progress">Em andamento</SelectItem>
+                <SelectItem value="completed">Finalizado</SelectItem>
+                <SelectItem value="cancelled">Cancelado</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {filtered.length === 0 ? (

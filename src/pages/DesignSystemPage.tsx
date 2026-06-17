@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { JollyDatePicker } from "@/components/ui/date-range-picker";
 import { JollyTimeField } from "@/components/ui/datefield";
 import { CalendarDate, Time, now, getLocalTimeZone } from "@internationalized/date";
-import { ArrowUpRight, Bell, Check, Info, Mail, Moon, Sun, User, Plus, Calendar, Clock } from "lucide-react";
+import { ArrowUpRight, Bell, Check, Mail, Moon, Sun, Plus, Calendar, Clock } from "lucide-react";
 
 // ── Color Tokens ──
 const colorTokens = [

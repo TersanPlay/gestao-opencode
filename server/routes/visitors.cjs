@@ -4,23 +4,80 @@ const router = express.Router();
 const db = require("../db.cjs");
 const { checkRole, checkScope } = require("../middleware/rbac.cjs");
 
-const MINELEAD_KEY = process.env.MINELEAD_API_KEY || "";
+const INVERTEXTO_TOKEN = process.env.INVERTEXTO_TOKEN || "";
 
-function checkDisposableEmail(email) {
+const CDN_URL = "https://cdn.jsdelivr.net/npm/disposable-email-domains@latest/index.json";
+
+const FALLBACK_DOMAINS = new Set([
+  "mailinator.com","guerrillamail.com","guerrillamail.net","guerrillamail.org",
+  "sharklasers.com","grr.la","10minutemail.com","tempmail.com","temp-mail.org",
+  "yopmail.com","maildrop.cc","trashmail.com","throwaway.email",
+]);
+
+let disposableDomains = null;
+
+function fetchDisposableDomains() {
   return new Promise((resolve) => {
-    if (!MINELEAD_KEY || !email) return resolve(false);
-    const url = `https://api.minelead.io/v1/detect-disposable/?key=${MINELEAD_KEY}&email=${encodeURIComponent(email)}`;
+    https.get(CDN_URL, (res) => {
+      if (res.statusCode !== 200) return resolve(false);
+      let data = "";
+      res.on("data", (chunk) => { data += chunk; });
+      res.on("end", () => {
+        try {
+          const list = JSON.parse(data);
+          if (Array.isArray(list) && list.length > 0) {
+            disposableDomains = new Set(list.map((d) => d.toLowerCase()));
+            console.log(`[disposable] loaded ${disposableDomains.size} domains from CDN`);
+            return resolve(true);
+          }
+        } catch { /* fallback */ }
+        resolve(false);
+      });
+    }).on("error", () => resolve(false));
+  });
+}
+
+fetchDisposableDomains().then((ok) => {
+  if (!ok) {
+    disposableDomains = FALLBACK_DOMAINS;
+    console.log(`[disposable] CDN failed, using fallback (${FALLBACK_DOMAINS.size} domains)`);
+  }
+});
+
+function checkDisposableLocal(email) {
+  if (!email || !email.includes("@")) return false;
+  const domain = email.split("@")[1].toLowerCase();
+  const list = disposableDomains || FALLBACK_DOMAINS;
+  return list.has(domain);
+}
+
+function checkDisposableInvertexto(email) {
+  return new Promise((resolve) => {
+    if (!INVERTEXTO_TOKEN) return resolve(null);
+    const url = `https://api.invertexto.com/v1/email-validator/${encodeURIComponent(email)}?token=${INVERTEXTO_TOKEN}`;
     https.get(url, (res) => {
       let data = "";
       res.on("data", (chunk) => { data += chunk; });
       res.on("end", () => {
         try {
           const json = JSON.parse(data);
-          resolve(json.disposable_status === "Disposable");
-        } catch { resolve(false); }
+          if (json.disposable !== undefined) {
+            return resolve(json.disposable === true);
+          }
+        } catch { /* fallback */ }
+        resolve(null);
       });
-    }).on("error", () => resolve(false));
+    }).on("error", () => resolve(null));
   });
+}
+
+async function checkDisposableEmail(email) {
+  if (!email) return false;
+
+  const result = await checkDisposableInvertexto(email);
+  if (result !== null) return result;
+
+  return checkDisposableLocal(email);
 }
 
 router.get("/", checkRole("admin", "gestor", "assessor", "operator"), checkScope(), (req, res) => {

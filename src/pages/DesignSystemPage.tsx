@@ -13,7 +13,12 @@ import { SearchInput } from "@/components/shared/SearchInput";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { VisitorStatusBadge, UserRoleBadge } from "@/components/shared/StatusBadge";
-import { ArrowUpRight, Bell, Check, Info, Mail, Moon, Sun, User, Plus, Calendar } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { JollyDatePicker } from "@/components/ui/date-range-picker";
+import { JollyTimeField } from "@/components/ui/datefield";
+import { CalendarDate, Time, now, getLocalTimeZone } from "@internationalized/date";
+import { ArrowUpRight, Bell, Check, Info, Mail, Moon, Sun, User, Plus, Calendar, Clock } from "lucide-react";
 
 // ── Color Tokens ──
 const colorTokens = [
@@ -77,6 +82,10 @@ export function DesignSystemPage() {
   const [search, setSearch] = useState("");
   const [selectValue, setSelectValue] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [checked, setChecked] = useState(false);
+  const today = now(getLocalTimeZone());
+  const [dpDate, setDpDate] = useState<CalendarDate>(new CalendarDate(today.year, today.month, today.day));
+  const [dpTime, setDpTime] = useState<Time>(new Time(today.hour, today.minute));
 
   const toggleDark = () => {
     setDark(!dark);
@@ -291,7 +300,7 @@ export function DesignSystemPage() {
         {/* ════════════════════════════════════════════ */}
         <section id="form" className="mb-16 scroll-mt-24">
           <h2 className="text-2xl font-bold tracking-tight">Formulário</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Input, Label, Select, SearchInput</p>
+          <p className="mt-1 text-sm text-muted-foreground">Input, Label, Select, SearchInput, Checkbox, Textarea, DatePicker, TimeField</p>
 
           <div className="mt-6 grid gap-6 md:grid-cols-2">
             {/* Input + Label */}
@@ -363,6 +372,68 @@ export function DesignSystemPage() {
                 {search && (
                   <p className="text-xs text-muted-foreground">Buscando por: <strong>{search}</strong></p>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Checkbox */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Checkbox</CardTitle>
+                <CardDescription>Caixa de seleção com label acessível</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Checkbox isSelected={checked} onChange={setChecked} label="Li e aceito os termos" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox defaultSelected label="Notificar por email (marcado)" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox isDisabled label="Opção desabilitada" />
+                </div>
+                <p className="text-xs text-muted-foreground pt-1">
+                  {checked ? "Checkbox marcado" : "Checkbox desmarcado"}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Textarea */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Textarea</CardTitle>
+                <CardDescription>Área de texto com resize, placeholder e disabled</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="ds-ta1">Observações</Label>
+                  <Textarea id="ds-ta1" placeholder="Digite suas observações..." rows={3} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="ds-ta2">Descrição (desabilitado)</Label>
+                  <Textarea id="ds-ta2" value="Campo bloqueado para edição." rows={2} disabled />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* DatePicker + TimeField */}
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-base">DatePicker + TimeField</CardTitle>
+                <CardDescription>Seleção de data com calendário popover + hora segmentada</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-6 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Data</Label>
+                  <JollyDatePicker value={dpDate} onChange={(v) => v && setDpDate(v)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Hora</Label>
+                  <JollyTimeField value={dpTime} onChange={(v) => v && setDpTime(v)} />
+                </div>
+                <div className="sm:col-span-2 pt-2 text-sm text-muted-foreground flex items-center gap-2 border-t border-border pt-4">
+                  <Clock className="h-4 w-4" />
+                  Selecionado: {dpDate.toString()} às {String(dpTime.hour).padStart(2,"0")}:{String(dpTime.minute).padStart(2,"0")}
+                </div>
               </CardContent>
             </Card>
 

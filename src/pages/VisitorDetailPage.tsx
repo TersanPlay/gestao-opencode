@@ -52,8 +52,12 @@ export function VisitorDetailPage() {
   const canAct = action && action.nextStatus !== visitor.status;
 
   const handleStatusChange = async (newStatus: Visitor["status"]) => {
-    await updateVisitor(visitor.id, { status: newStatus });
-    setVisitor({ ...visitor, status: newStatus });
+    const now = new Date().toISOString();
+    const extra: Record<string, string> = {};
+    if (newStatus === "checking_in") extra.checkinAt = now;
+    if (newStatus === "completed") extra.checkoutAt = now;
+    await updateVisitor(visitor.id, { status: newStatus, ...extra });
+    setVisitor({ ...visitor, status: newStatus, ...extra });
     toast.success(`Status atualizado para "${newStatus === "checking_in" ? "Check-in" : newStatus === "in_progress" ? "Em andamento" : newStatus === "completed" ? "Finalizado" : newStatus}"`);
   };
 

@@ -1,0 +1,12 @@
+.env
+node_modules/
+dist/
+corporate.db
+corporate.db-shm
+corporate.db-wal
+*.log
+start-dev.bat
+.agents/
+.opencode/
+.qoder/
+.trae/

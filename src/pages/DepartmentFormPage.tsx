@@ -6,15 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { useAuth } from "@/contexts/AuthContext";
 import { getDepartmentById, createDepartment, updateDepartment, getDepartments, getUsers } from "@/services/api";
 import type { Department, User } from "@/types";
 import { ArrowLeft, Save } from "lucide-react";
 import { toast } from "sonner";
 
 export function DepartmentFormPage() {
+  const { user } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = !!id;
+
+  const canSeeUsers = user && ["admin", "gestor"].includes(user.role);
 
   const [departments, setDepartments] = useState<Department[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -27,11 +31,11 @@ export function DepartmentFormPage() {
 
   useEffect(() => {
     getDepartments().then(setDepartments);
-    getUsers().then(setUsers);
+    if (canSeeUsers) getUsers().then(setUsers);
     if (id) getDepartmentById(id).then((d) => {
       if (d) setForm({ name: d.name, description: d.description || "", parentId: d.parentId || "", responsibleId: d.responsibleId });
     });
-  }, [id]);
+  }, [id, canSeeUsers]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

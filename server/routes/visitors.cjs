@@ -3,6 +3,7 @@ const https = require("https");
 const router = express.Router();
 const db = require("../db.cjs");
 const { checkRole, checkScope } = require("../middleware/rbac.cjs");
+const { notifyDepartmentUsers, notifyAdmins } = require("./notifications.cjs");
 
 const INVERTEXTO_TOKEN = process.env.INVERTEXTO_TOKEN || "";
 
@@ -86,7 +87,7 @@ router.get("/", checkRole("admin", "gestor", "assessor", "operator"), checkScope
   const conditions = [];
   const params = [];
 
-  if (req.scopeDepartmentId) {
+  if (req.scopeDepartmentId && req.user.role !== "operator") {
     conditions.push("departmentId = ?");
     params.push(req.scopeDepartmentId);
   }
@@ -110,7 +111,7 @@ router.get("/check-email", checkRole("admin", "gestor", "assessor", "operator"),
 router.get("/:id", checkRole("admin", "gestor", "assessor", "operator"), (req, res) => {
   const visitor = db.prepare("SELECT * FROM visitors WHERE id = ?").get(req.params.id);
   if (!visitor) return res.status(404).json({ error: "Visitante nao encontrado" });
-  if (req.user.role !== "admin" && visitor.departmentId !== req.user.departmentId) {
+  if (req.user.role !== "admin" && req.user.role !== "operator" && visitor.departmentId !== req.user.departmentId) {
     return res.status(403).json({ error: "Acesso negado" });
   }
   res.json(visitor);
@@ -131,13 +132,14 @@ router.post("/", checkRole("admin", "gestor", "assessor", "operator"), checkScop
     status || "registered", purpose || "",
     scheduledAt || null
   );
+  if (deptId) notifyDepartmentUsers(deptId, "visitor_created", "Novo visitante", `${name} foi cadastrado`, `/visitors/${result.lastInsertRowid}`);
   res.status(201).json({ id: result.lastInsertRowid, name });
 });
 
-router.put("/:id", checkRole("admin", "gestor", "assessor"), async (req, res) => {
+router.put("/:id", checkRole("admin", "gestor", "assessor", "operator"), async (req, res) => {
   const existing = db.prepare("SELECT * FROM visitors WHERE id = ?").get(req.params.id);
   if (!existing) return res.status(404).json({ error: "Visitante nao encontrado" });
-  if (req.user.role !== "admin" && existing.departmentId !== req.user.departmentId) {
+  if (req.user.role !== "admin" && req.user.role !== "operator" && existing.departmentId !== req.user.departmentId) {
     return res.status(403).json({ error: "Acesso negado" });
   }
 
@@ -158,6 +160,14 @@ router.put("/:id", checkRole("admin", "gestor", "assessor"), async (req, res) =>
   if (fields.length === 0) return res.status(400).json({ error: "Nenhum campo para atualizar" });
   params.push(req.params.id);
   db.prepare(`UPDATE visitors SET ${fields.join(", ")} WHERE id=?`).run(...params);
+
+  if (req.body.status === "checking_in" && existing.departmentId) {
+    notifyDepartmentUsers(existing.departmentId, "visitor_checkin", "Visitante chegou", `${existing.name} fez check-in`, `/visitors/${req.params.id}`);
+  }
+  if (req.body.status === "scheduled" && existing.departmentId) {
+    notifyDepartmentUsers(existing.departmentId, "visitor_scheduled", "Visita agendada", `${existing.name} foi agendado`, `/visitors/${req.params.id}`);
+  }
+
   res.json({ success: true });
 });
 

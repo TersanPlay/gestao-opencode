@@ -4,15 +4,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Avatar } from "@/components/ui/avatar";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { createVisitor, updateVisitor, getVisitorById, checkDisposableEmail } from "@/services/api";
-import { ArrowLeft, Save, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Save, AlertTriangle, Camera, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function VisitorFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = !!id;
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(!!id);
   const [form, setForm] = useState({
@@ -21,6 +23,7 @@ export function VisitorFormPage() {
     phone: "",
     document: "",
     company: "",
+    photo: "",
   });
   const [disposable, setDisposable] = useState(false);
   const [checkingEmail, setCheckingEmail] = useState(false);
@@ -36,6 +39,7 @@ export function VisitorFormPage() {
             phone: v.phone,
             document: v.document,
             company: v.company || "",
+            photo: v.photo || "",
           });
           setDisposable(v.isDisposable === 1);
         }
@@ -43,6 +47,40 @@ export function VisitorFormPage() {
       });
     }
   }, [id]);
+
+  const MAX_FILE_SIZE = 5 * 1024 * 1024;
+  const MAX_IMG_SIZE = 800;
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Arquivo muito grande. Maximo 5MB.");
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > MAX_IMG_SIZE || height > MAX_IMG_SIZE) {
+        const ratio = Math.min(MAX_IMG_SIZE / width, MAX_IMG_SIZE / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+      setForm({ ...form, photo: canvas.toDataURL("image/jpeg", 0.8) });
+    };
+    img.onerror = () => toast.error("Erro ao processar imagem");
+    img.src = URL.createObjectURL(file);
+  };
+
+  const handleRemovePhoto = () => {
+    setForm({ ...form, photo: "" });
+    if (fileRef.current) fileRef.current.value = "";
+  };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const email = e.target.value;
@@ -68,6 +106,7 @@ export function VisitorFormPage() {
       phone: form.phone,
       document: form.document,
       company: form.company || undefined,
+      photo: form.photo || undefined,
     };
     if (isEditing) {
       await updateVisitor(id!, data);
@@ -87,6 +126,26 @@ export function VisitorFormPage() {
       <Card className="max-w-2xl">
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="flex items-center gap-4 pb-2">
+              <div className="relative">
+                <Avatar name={form.name || "?"} src={form.photo || undefined} size="lg" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <input ref={fileRef} type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
+                <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()} className="gap-2">
+                  <Camera className="h-4 w-4" />
+                  {form.photo ? "Alterar Foto" : "Adicionar Foto"}
+                </Button>
+                {form.photo && (
+                  <Button type="button" variant="ghost" size="sm" onClick={handleRemovePhoto} className="gap-2 text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                    Remover Foto
+                  </Button>
+                )}
+                <p className="text-xs text-muted-foreground">JPG, PNG ou WEBP. Max 5MB. Redimensionado para 800px.</p>
+              </div>
+            </div>
+
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="name">Nome Completo</Label>

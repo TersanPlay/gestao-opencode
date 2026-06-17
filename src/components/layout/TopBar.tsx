@@ -1,8 +1,9 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Bell, Search, LogOut } from "lucide-react";
+import { Search, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -32,19 +33,18 @@ export function TopBar() {
             />
           </div>
 
-          <button className="relative flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-200">
-            <Bell className="h-4 w-4" />
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-indigo-500 ring-2 ring-white" />
-          </button>
+          <NotificationBell />
 
           <div className="flex items-center gap-2 pl-2 border-l border-black/5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 text-white text-xs font-medium">
-              {user?.name?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) || "AD"}
-            </div>
-            <div className="hidden md:block text-sm leading-tight">
-              <p className="font-medium text-foreground">{user?.name || "Admin"}</p>
-              <p className="text-xs text-muted-foreground">{user?.email || "admin@org.com"}</p>
-            </div>
+            <button type="button" onClick={() => navigate("/profile")} className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 text-white text-xs font-medium">
+                {user?.name?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) || "AD"}
+              </div>
+              <div className="hidden md:block text-sm leading-tight text-left">
+                <p className="font-medium text-foreground">{user?.name || "Admin"}</p>
+                <p className="text-xs text-muted-foreground">{user?.email || "admin@org.com"}</p>
+              </div>
+            </button>
           </div>
 
           <Button

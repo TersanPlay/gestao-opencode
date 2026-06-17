@@ -2,6 +2,10 @@ const Database = require("better-sqlite3");
 const path = require("path");
 const bcrypt = require("bcryptjs");
 
+if (typeof BigInt !== "undefined" && !BigInt.prototype.toJSON) {
+  BigInt.prototype.toJSON = function () { return Number(this); };
+}
+
 const dbPath = path.join(__dirname, "corporate.db");
 const db = new Database(dbPath);
 
@@ -61,6 +65,52 @@ db.exec(`
     FOREIGN KEY (visitorId) REFERENCES visitors(id) ON DELETE CASCADE
   );
 `);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId INTEGER NOT NULL,
+    type TEXT NOT NULL DEFAULT 'info',
+    title TEXT NOT NULL,
+    message TEXT NOT NULL DEFAULT '',
+    link TEXT DEFAULT NULL,
+    read INTEGER DEFAULT 0,
+    createdAt TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS audit_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId INTEGER DEFAULT NULL,
+    userName TEXT DEFAULT '',
+    userRole TEXT DEFAULT '',
+    action TEXT NOT NULL,
+    resource TEXT NOT NULL,
+    resourceId TEXT DEFAULT NULL,
+    details TEXT DEFAULT '',
+    ip TEXT DEFAULT '',
+    createdAt TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL DEFAULT '',
+    description TEXT DEFAULT '',
+    updatedAt TEXT DEFAULT (datetime('now'))
+  );
+`);
+
+const SETTINGS_SEED = [
+  { key: "instituicao_nome", value: "Câmara Municipal", description: "Nome da instituição" },
+  { key: "logo_url", value: "", description: "URL da logomarca" },
+  { key: "sessao_expiracao", value: "8", description: "Tempo de expiração da sessão (horas)" },
+  { key: "notificacoes_ativas", value: "true", description: "Ativar notificações do sistema" },
+  { key: "horario_abertura", value: "08:00", description: "Horário de abertura da portaria" },
+  { key: "horario_fechamento", value: "18:00", description: "Horário de fechamento da portaria" },
+];
+
+const seedSettings = db.prepare("INSERT OR IGNORE INTO settings (key, value, description) VALUES (?, ?, ?)");
+for (const s of SETTINGS_SEED) seedSettings.run(s.key, s.value, s.description);
 
 try { db.exec("ALTER TABLE visitors ADD COLUMN isDisposable INTEGER DEFAULT 0"); } catch (e) {}
 

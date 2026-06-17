@@ -9,12 +9,14 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { VisitorStatusBadge } from "@/components/shared/StatusBadge";
 import { PermissionGate } from "@/components/auth/PermissionGate";
+import { useAuth } from "@/contexts/AuthContext";
 import { getVisitors, getDepartments, getUsers } from "@/services/api";
 import type { Visitor, Department, User } from "@/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, Calendar, Building2, Clock, CalendarPlus, Pencil } from "lucide-react";
 
 export function VisitorsPage() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -22,11 +24,13 @@ export function VisitorsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
+  const canSeeUsers = user && ["admin", "gestor"].includes(user.role);
+
   useEffect(() => {
     getVisitors().then(setVisitors);
     getDepartments().then(setDepartments);
-    getUsers().then(setUsers);
-  }, []);
+    if (canSeeUsers) getUsers().then(setUsers).catch(() => {});
+  }, [canSeeUsers]);
 
   const filtered = visitors.filter((v) => {
     const matchesSearch =
@@ -93,7 +97,7 @@ export function VisitorsPage() {
                   <TableRow key={v.id} className="cursor-pointer" onClick={() => navigate(`/visitors/${v.id}`)}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <Avatar name={v.name} size="sm" />
+                        <Avatar name={v.name} src={v.photo} size="sm" />
                         <span className="font-medium">{v.name}</span>
                       </div>
                     </TableCell>

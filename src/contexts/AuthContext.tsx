@@ -6,6 +6,7 @@ interface AuthUser {
   id: number;
   name: string;
   email: string;
+  phone?: string;
   role: UserRole;
   departmentId: number | null;
 }
@@ -17,6 +18,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   can: (action: Action, resource: Resource) => boolean;
+  updateUser: (u: AuthUser) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -68,8 +70,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return checkPermission(user?.role, action, resource);
   }, [user]);
 
+  const updateUser = (u: AuthUser) => setUser(u);
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, can }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout, can, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

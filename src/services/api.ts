@@ -1,4 +1,4 @@
-import type { User, Department, Visitor, TimelineEvent, DashboardMetrics, ReportVisitors, ReportDepartments, ReportUsers } from "@/types";
+import type { User, Department, Visitor, TimelineEvent, DashboardMetrics, ReportVisitors, ReportDepartments, ReportUsers, Notification, AuditLog, SettingsMap } from "@/types";
 
 const BASE = "/api";
 
@@ -25,7 +25,7 @@ export async function getUserById(id: string): Promise<User> {
   return request(`/users/${id}`);
 }
 
-export async function createUser(data: Omit<User, "id" | "createdAt">): Promise<User> {
+export async function createUser(data: Omit<User, "id" | "createdAt"> & { password?: string }): Promise<User> {
   return request("/users", { method: "POST", body: JSON.stringify(data) });
 }
 
@@ -106,4 +106,39 @@ export async function getReportDepartments(): Promise<ReportDepartments> {
 
 export async function getReportUsers(): Promise<ReportUsers> {
   return request("/reports/users");
+}
+
+export async function getNotifications(unreadOnly?: boolean): Promise<Notification[]> {
+  const qs = unreadOnly ? "?unreadOnly=true" : "";
+  return request(`/notifications${qs}`);
+}
+
+export async function getUnreadCount(): Promise<{ count: number }> {
+  return request("/notifications/unread-count");
+}
+
+export async function markNotificationRead(id: string): Promise<void> {
+  await request(`/notifications/${id}/read`, { method: "PUT" });
+}
+
+export async function markAllNotificationsRead(): Promise<void> {
+  await request("/notifications/read-all", { method: "POST" });
+}
+
+export async function getLogs(params?: { action?: string; resource?: string; userId?: string; start?: string; end?: string; limit?: number }): Promise<AuditLog[]> {
+  const clean = params ? Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== undefined && v !== "")) : undefined;
+  const qs = clean ? "?" + new URLSearchParams(clean as Record<string, string>).toString() : "";
+  return request(`/logs${qs}`);
+}
+
+export async function getLogUsers(): Promise<{ id: string; name: string }[]> {
+  return request("/logs/users");
+}
+
+export async function getSettings(): Promise<SettingsMap> {
+  return request("/settings");
+}
+
+export async function updateSettings(data: Record<string, string>): Promise<SettingsMap> {
+  return request("/settings", { method: "PUT", body: JSON.stringify(data) });
 }

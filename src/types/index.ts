@@ -1,6 +1,6 @@
 export type UserRole = "admin" | "gestor" | "assessor" | "operator";
 
-export type Resource = "users" | "departments" | "visitors" | "reports" | "dashboard";
+export type Resource = "users" | "departments" | "visitors" | "reports" | "dashboard" | "notifications" | "logs" | "settings";
 
 export type Action = "create" | "read" | "update" | "delete";
 
@@ -98,3 +98,37 @@ export interface ReportUsers {
   byRole: { role: string; count: number }[];
   byStatus: { status: string; count: number }[];
 }
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: string;
+  title: string;
+  message: string;
+  link: string | null;
+  read: number;
+  createdAt: string;
+}
+
+export interface AuditLog {
+  id: string;
+  userId: number | null;
+  userName: string;
+  userRole: string;
+  action: string;
+  resource: string;
+  resourceId: string | null;
+  details: string;
+  ip: string;
+  createdAt: string;
+  uName?: string;
+  uRole?: string;
+}
+
+export interface SettingEntry {
+  value: string;
+  description: string;
+  updatedAt: string;
+}
+
+export type SettingsMap = Record<string, SettingEntry>;

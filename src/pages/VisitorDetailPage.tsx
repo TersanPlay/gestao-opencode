@@ -6,6 +6,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { VisitorStatusBadge } from "@/components/shared/StatusBadge";
 import { PermissionGate } from "@/components/auth/PermissionGate";
+import { useAuth } from "@/contexts/AuthContext";
 import { getVisitorById, getTimeline, getDepartments, getUsers, updateVisitor } from "@/services/api";
 import type { Visitor, TimelineEvent, Department, User } from "@/types";
 import { STATUS_ACTIONS } from "@/lib/visitor-utils";
@@ -13,6 +14,7 @@ import { AlertTriangle, ArrowLeft, Building2, User as UserIcon, Calendar, Clock,
 import { toast } from "sonner";
 
 export function VisitorDetailPage() {
+  const { user } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [visitor, setVisitor] = useState<Visitor | null>(null);
@@ -20,13 +22,15 @@ export function VisitorDetailPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [users, setUsers] = useState<User[]>([]);
 
+  const canSeeUsers = user && ["admin", "gestor"].includes(user.role);
+
   useEffect(() => {
     if (!id) return;
     getVisitorById(id).then((v) => v && setVisitor(v));
     getTimeline(id).then(setTimeline);
     getDepartments().then(setDepartments);
-    getUsers().then(setUsers);
-  }, [id]);
+    if (canSeeUsers) getUsers().then(setUsers).catch(() => {});
+  }, [id, canSeeUsers]);
 
   if (!visitor) return null;
 
@@ -55,7 +59,7 @@ export function VisitorDetailPage() {
 
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          <Avatar name={visitor.name} size="lg" />
+          <Avatar name={visitor.name} src={visitor.photo} size="lg" />
           <div>
             <h2 className="text-2xl font-bold tracking-tight">{visitor.name}</h2>
             <p className="text-sm text-muted-foreground">{visitor.company || "Visitante externo"}</p>

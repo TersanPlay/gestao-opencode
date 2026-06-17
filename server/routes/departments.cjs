@@ -24,7 +24,7 @@ router.get("/:id", checkRole("admin", "gestor", "assessor", "operator"), (req, r
   res.json(dept);
 });
 
-router.post("/", checkRole("admin"), (req, res) => {
+router.post("/", checkRole("admin", "operator"), (req, res) => {
   const { name, description, parentId, responsibleId } = req.body;
   const result = db.prepare("INSERT INTO departments (name, description, parentId, responsibleId) VALUES (?, ?, ?, ?)").run(
     name, description || "", parentId || null, responsibleId || null
@@ -32,7 +32,7 @@ router.post("/", checkRole("admin"), (req, res) => {
   res.status(201).json({ id: result.lastInsertRowid, name });
 });
 
-router.put("/:id", checkRole("admin"), (req, res) => {
+router.put("/:id", checkRole("admin", "operator"), (req, res) => {
   const { name, description, parentId, responsibleId } = req.body;
   db.prepare("UPDATE departments SET name=?, description=?, parentId=?, responsibleId=? WHERE id=?").run(
     name, description || "", parentId || null, responsibleId || null, req.params.id
@@ -40,7 +40,7 @@ router.put("/:id", checkRole("admin"), (req, res) => {
   res.json({ success: true });
 });
 
-router.delete("/:id", checkRole("admin"), (req, res) => {
+router.delete("/:id", checkRole("admin", "operator"), (req, res) => {
   db.prepare("DELETE FROM departments WHERE id = ?").run(req.params.id);
   res.json({ success: true });
 });

@@ -9,6 +9,9 @@ import {
   UserCheck,
   CalendarCheck,
   BarChart3,
+  Bell,
+  Shield,
+  Settings,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -23,10 +26,13 @@ interface NavItem {
 const allNavItems: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "gestor", "assessor", "operator"] },
   { to: "/users", label: "Usuários", icon: Users, roles: ["admin", "gestor"] },
-  { to: "/departments", label: "Departamentos", icon: Building2, roles: ["admin"] },
+  { to: "/departments", label: "Departamentos", icon: Building2, roles: ["admin", "gestor"] },
   { to: "/visitors", label: "Visitantes", icon: UserCheck, roles: ["admin", "gestor", "assessor", "operator"] },
   { to: "/visitors/schedule", label: "Agendamento", icon: CalendarCheck, roles: ["admin", "gestor", "assessor", "operator"] },
   { to: "/reports", label: "Relatórios", icon: BarChart3, roles: ["admin", "gestor", "assessor"] },
+  { to: "/notifications", label: "Notificações", icon: Bell, roles: ["admin", "gestor", "assessor", "operator"] },
+  { to: "/logs", label: "Auditoria", icon: Shield, roles: ["admin"] },
+  { to: "/settings", label: "Configurações", icon: Settings, roles: ["admin"] },
 ];
 
 export function Sidebar() {

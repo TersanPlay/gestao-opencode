@@ -14,6 +14,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { VisitorStatusBadge } from "@/components/shared/StatusBadge";
 import { getVisitors, getDepartments, getUsers, updateVisitor } from "@/services/api";
 import type { Visitor, Department, User } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
 import { STATUS_ACTIONS } from "@/lib/visitor-utils";
 import { CalendarDate, Time, now, getLocalTimeZone, parseDate } from "@internationalized/date";
 import { JollyDatePicker } from "@/components/ui/date-range-picker";
@@ -38,6 +39,7 @@ const purposeOptions = [
 ];
 
 export function VisitorSchedulePage() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -54,13 +56,15 @@ export function VisitorSchedulePage() {
   const [scheduleDeptId, setScheduleDeptId] = useState("");
   const [modalMode, setModalMode] = useState<"schedule" | "manage">("schedule");
 
+  const canSeeUsers = user && ["admin", "gestor"].includes(user.role);
+
   const refresh = () => getVisitors().then(setVisitors);
 
   useEffect(() => {
     refresh();
     getDepartments().then(setDepartments);
-    getUsers().then(setUsers);
-  }, []);
+    if (canSeeUsers) getUsers().then(setUsers).catch(() => {});
+  }, [canSeeUsers]);
 
   const scheduled = visitors.filter((v) =>
     ["scheduled","checking_in","in_progress","completed","cancelled"].includes(v.status || "")
@@ -92,7 +96,7 @@ export function VisitorSchedulePage() {
     const n = now(getLocalTimeZone());
     setScheduleDate(new CalendarDate(n.year, n.month, n.day));
     setScheduleTime(new Time(n.hour, n.minute));
-    setScheduleDeptId(v.departmentId || "");
+    setScheduleDeptId(String(v.departmentId ?? ""));
     setModalMode("schedule");
     setModalOpen(true);
   };
@@ -167,7 +171,7 @@ export function VisitorSchedulePage() {
                   onClick={() => openScheduleModal(v)}
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <Avatar name={v.name} size="sm" />
+                    <Avatar name={v.name} src={v.photo} size="sm" />
                     <div className="min-w-0">
                       <p className="text-sm font-medium truncate">{v.name}</p>
                       <p className="text-xs text-muted-foreground truncate">{v.email} — {v.document}</p>
@@ -223,7 +227,7 @@ export function VisitorSchedulePage() {
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <Avatar name={v.name} size="sm" />
+                        <Avatar name={v.name} src={v.photo} size="sm" />
                         <span className="font-medium">{v.name}</span>
                       </div>
                     </TableCell>
@@ -261,7 +265,7 @@ export function VisitorSchedulePage() {
         {selected && (
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
             <div className="flex items-center gap-3 rounded-xl border bg-muted/30 p-3">
-              <Avatar name={selected.name} size="md" />
+              <Avatar name={selected.name} src={selected.photo} size="md" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">{selected.name}</p>
                 <p className="text-xs text-muted-foreground truncate">{selected.document} — {selected.email}</p>
@@ -276,7 +280,7 @@ export function VisitorSchedulePage() {
                 </SelectTrigger>
                 <SelectContent>
                   {departments.map((d) => (
-                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                    <SelectItem key={d.id} value={String(d.id)}>{d.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -341,7 +345,7 @@ export function VisitorSchedulePage() {
         {selected && (
           <div className="space-y-4 pt-2">
             <div className="flex items-center gap-3 rounded-xl border bg-muted/30 p-3">
-              <Avatar name={selected.name} size="md" />
+              <Avatar name={selected.name} src={selected.photo} size="md" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">{selected.name}</p>
                 <p className="text-xs text-muted-foreground truncate">

@@ -8,6 +8,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { SearchInput } from "@/components/shared/SearchInput";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { useAuth } from "@/contexts/AuthContext";
 import { getDepartments, getUsers, deleteDepartment } from "@/services/api";
 import type { Department, User } from "@/types";
 import { Pencil, Trash2, Building2, ChevronRight, ChevronDown } from "lucide-react";
@@ -87,15 +88,18 @@ function DeptRow({
 }
 
 export function DepartmentsPage() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [depts, setDepts] = useState<Department[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
 
+  const canSeeUsers = user && ["admin", "gestor"].includes(user.role);
+
   useEffect(() => {
     getDepartments().then(setDepts);
-    getUsers().then(setUsers);
-  }, []);
+    if (canSeeUsers) getUsers().then(setUsers);
+  }, [canSeeUsers]);
 
   const tree = buildTree(depts);
 

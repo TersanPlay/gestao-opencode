@@ -3,8 +3,9 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const db = require("../db.cjs");
 const { checkRole, checkScope } = require("../middleware/rbac.cjs");
+const { notifyAdmins } = require("./notifications.cjs");
 
-router.get("/", checkRole("admin", "gestor", "assessor"), checkScope(), (req, res) => {
+router.get("/", checkRole("admin", "gestor"), checkScope(), (req, res) => {
   if (req.user.role === "admin") {
     const users = db.prepare("SELECT id, name, email, phone, role, active, departmentId, createdAt FROM users ORDER BY id DESC").all();
     return res.json(users);
@@ -14,7 +15,7 @@ router.get("/", checkRole("admin", "gestor", "assessor"), checkScope(), (req, re
   res.json(users);
 });
 
-router.get("/:id", checkRole("admin", "gestor", "assessor"), (req, res) => {
+router.get("/:id", checkRole("admin", "gestor"), (req, res) => {
   const user = db.prepare("SELECT id, name, email, phone, role, active, departmentId, createdAt FROM users WHERE id = ?").get(req.params.id);
   if (!user) return res.status(404).json({ error: "Usuário nao encontrado" });
   if (req.user.role !== "admin" && user.departmentId !== req.user.departmentId) {
@@ -39,6 +40,7 @@ router.post("/", checkRole("admin", "gestor"), (req, res) => {
   const result = db.prepare("INSERT INTO users (name, email, password, phone, role, departmentId, active) VALUES (?, ?, ?, ?, ?, ?, ?)").run(
     name, email, hash, phone || "", role || "operator", targetDept, active !== undefined ? (active ? 1 : 0) : 1
   );
+  notifyAdmins("user_created", "Novo usuário", `${name} (${role || "operator"}) foi criado`, `/users/${result.lastInsertRowid}`);
   res.status(201).json({ id: result.lastInsertRowid, name, email });
 });
 
@@ -52,11 +54,15 @@ router.put("/:id", checkRole("admin", "gestor"), (req, res) => {
     return res.status(403).json({ error: "Gestor nao pode alterar admin" });
   }
 
-  const { name, email, phone, role, departmentId, active } = req.body;
+  const { name, email, password, phone, role, departmentId, active } = req.body;
   db.prepare("UPDATE users SET name=?, email=?, phone=?, role=?, departmentId=?, active=? WHERE id=?").run(
     name, email, phone || "", role, departmentId || null,
     active !== undefined ? (active ? 1 : 0) : 1, req.params.id
   );
+  if (password) {
+    const hash = bcrypt.hashSync(password, 10);
+    db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hash, req.params.id);
+  }
   res.json({ success: true });
 });
 

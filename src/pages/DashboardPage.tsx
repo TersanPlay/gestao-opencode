@@ -2,21 +2,25 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
 import { getDashboardMetrics, getVisitors, getUsers } from "@/services/api";
 import type { DashboardMetrics, Visitor, User } from "@/types";
 import { Users, Building2, UserCheck, Clock, ArrowRight, TrendingUp } from "lucide-react";
 import { VisitorStatusBadge } from "@/components/shared/StatusBadge";
 
 export function DashboardPage() {
+  const { user } = useAuth();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [recentVisitors, setRecentVisitors] = useState<Visitor[]>([]);
   const [recentUsers, setRecentUsers] = useState<User[]>([]);
 
+  const canSeeUsers = user && ["admin", "gestor"].includes(user.role);
+
   useEffect(() => {
     getDashboardMetrics().then(setMetrics);
     getVisitors().then((v) => setRecentVisitors(v.slice(0, 4)));
-    getUsers().then((u) => setRecentUsers(u.slice(0, 3)));
-  }, []);
+    if (canSeeUsers) getUsers().then((u) => setRecentUsers(u.slice(0, 3))).catch(() => {});
+  }, [canSeeUsers]);
 
   if (!metrics) return null;
 
@@ -70,7 +74,7 @@ export function DashboardPage() {
             {recentVisitors.map((v) => (
               <div key={v.id} className="flex items-center justify-between rounded-xl bg-muted/50 p-3 transition-colors hover:bg-muted">
                 <div className="flex items-center gap-3">
-                  <Avatar name={v.name} size="sm" />
+                  <Avatar name={v.name} src={v.photo} size="sm" />
                   <div>
                     <p className="text-sm font-medium">{v.name}</p>
                     <p className="text-xs text-muted-foreground">{v.company || "Sem empresa"}</p>

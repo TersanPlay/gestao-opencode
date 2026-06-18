@@ -25,6 +25,7 @@ import { PerfilCMPListPage } from "@/pages/performance/PerfilCMPListPage";
 import { PerfilCMPFormPage } from "@/pages/performance/PerfilCMPFormPage";
 import { PerfilCMPDetailPage } from "@/pages/performance/PerfilCMPDetailPage";
 import { CyclesListPage } from "@/pages/performance/CyclesListPage";
+import { CycleDetailPage } from "@/pages/performance/CycleDetailPage";
 import { CycleFormPage } from "@/pages/performance/CycleFormPage";
 import { EvaluationFormPage } from "@/pages/performance/EvaluationFormPage";
 import { MetaFormPage } from "@/pages/performance/MetaFormPage";
@@ -64,6 +65,7 @@ export function AppRouter() {
         <Route path="/performance/profiles/:id" element={<ProtectedRoute roles={["admin", "gestor", "assessor", "operator"]}><PerfilCMPDetailPage /></ProtectedRoute>} />
         <Route path="/performance/profiles/:id/edit" element={<ProtectedRoute roles={["admin", "gestor"]}><PerfilCMPFormPage /></ProtectedRoute>} />
         <Route path="/performance/cycles" element={<ProtectedRoute roles={["admin", "gestor"]}><CyclesListPage /></ProtectedRoute>} />
+        <Route path="/performance/cycles/:id" element={<ProtectedRoute roles={["admin", "gestor"]}><CycleDetailPage /></ProtectedRoute>} />
         <Route path="/performance/cycles/new" element={<ProtectedRoute roles={["admin"]}><CycleFormPage /></ProtectedRoute>} />
         <Route path="/performance/cycles/:id/edit" element={<ProtectedRoute roles={["admin"]}><CycleFormPage /></ProtectedRoute>} />
         <Route path="/performance/evaluations/new/:colaboradorId" element={<ProtectedRoute roles={["admin", "gestor"]}><EvaluationFormPage /></ProtectedRoute>} />

@@ -22,16 +22,18 @@ export function MetaFormPage() {
   const [loading, setLoading] = useState(isEditing);
 
   useEffect(() => {
-    getCiclos().then(setCiclos);
-    if (id) {
-      getMetaById(id).then((m) => {
-        setForm({
-          nome: m.nome, descricao: m.descricao || "", metaEsperada: m.metaEsperada || "",
-          resultadoObtido: m.resultadoObtido || "", percentualConclusao: String(m.percentualConclusao || "0"),
-          prazo: m.prazo || "", responsavelId: m.responsavelId || "", cicloId: m.cicloId || "", status: m.status,
+    getCiclos().then((data) => {
+      setCiclos(data);
+      if (id) {
+        return getMetaById(id).then((m) => {
+          setForm({
+            nome: m.nome, descricao: m.descricao || "", metaEsperada: m.metaEsperada || "",
+            resultadoObtido: m.resultadoObtido || "", percentualConclusao: String(m.percentualConclusao || "0"),
+            prazo: m.prazo || "", responsavelId: m.responsavelId || "", cicloId: m.cicloId || "", status: m.status,
+          });
         });
-      }).finally(() => setLoading(false));
-    }
+      }
+    }).catch((err) => toast.error(err.message || "Erro ao carregar dados")).finally(() => { if (id) setLoading(false); });
   }, [id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,11 +72,11 @@ export function MetaFormPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cicloId">Ciclo de avaliação</Label>
-                <Select value={form.cicloId} onValueChange={(v) => setForm({ ...form, cicloId: v })}>
+                <Select key={ciclos.length} value={form.cicloId} onValueChange={(v) => setForm({ ...form, cicloId: v })}>
                   <SelectTrigger id="cicloId"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">Sem ciclo</SelectItem>
-                    {ciclos.map((c) => (<SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>))}
+                    {ciclos.map((c) => (<SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>))}
                   </SelectContent>
                 </Select>
               </div>

@@ -81,6 +81,12 @@
   to { transform: translateX(-50%); }
 }
 
+@keyframes indeterminate {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(200%); }
+  100% { transform: translateX(400%); }
+}
+
 @layer base {
   * {
     @apply border-border;

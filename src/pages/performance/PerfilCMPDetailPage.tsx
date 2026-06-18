@@ -142,7 +142,7 @@ export function PerfilCMPDetailPage() {
                   <CardContent className="text-sm space-y-1">
                     <p><span className="text-muted-foreground">Ciclo:</span> {colaborador.ultimaAvaliacao.cicloNome || "—"}</p>
                     <p><span className="text-muted-foreground">Avaliador:</span> {colaborador.ultimaAvaliacao.avaliadorNome || "—"}</p>
-                    <p><span className="text-muted-foreground">Nota final:</span> {colaborador.ultimaAvaliacao.notaFinal} <Badge variant={conceitoColors[colaborador.ultimaAvaliacao.conceitoFinal] || "default"}>{colaborador.ultimaAvaliacao.conceitoFinal}</Badge></p>
+                    <div className="text-sm"><span className="text-muted-foreground">Nota final:</span> {colaborador.ultimaAvaliacao.notaFinal} <Badge variant={conceitoColors[colaborador.ultimaAvaliacao.conceitoFinal] || "default"}>{colaborador.ultimaAvaliacao.conceitoFinal}</Badge></div>
                   </CardContent>
                 </Card>
               )}

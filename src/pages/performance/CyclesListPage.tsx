@@ -6,27 +6,25 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableBody, TableRow, TableCell, TableHead } from "@/components/ui/table";
-import { Dialog } from "@/components/ui/dialog";
 import { getCiclos, updateCiclo, getCicloProgress } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Plus, Play, Square, Eye } from "lucide-react";
-import type { CicloAvaliacao, CicloProgress } from "@/types";
+import type { CicloAvaliacao } from "@/types";
 
 export function CyclesListPage() {
   const navigate = useNavigate();
   const { user, can } = useAuth();
   const [ciclos, setCiclos] = useState<CicloAvaliacao[]>([]);
-  const [progressMap, setProgressMap] = useState<Record<string, CicloProgress>>({});
+  const [progressMap, setProgressMap] = useState<Record<string, { totalColaboradores: number; avaliacoesRealizadas: number; percentualConcluido: number }>>({});
   const [loading, setLoading] = useState(true);
-  const [progressModal, setProgressModal] = useState<{ open: boolean; data: CicloProgress | null; nome: string }>({ open: false, data: null, nome: "" });
   const podeGerenciar = user?.role === "admin";
 
   const load = () => {
     setLoading(true);
     getCiclos().then(async (ciclos) => {
       setCiclos(ciclos);
-      const pm: Record<string, CicloProgress> = {};
+      const pm: Record<string, { totalColaboradores: number; avaliacoesRealizadas: number; percentualConcluido: number }> = {};
       await Promise.all(ciclos.map(async (c) => {
         try { pm[c.id] = await getCicloProgress(c.id); } catch {}
       }));
@@ -89,7 +87,7 @@ export function CyclesListPage() {
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           {prog && (
-                            <Button variant="ghost" size="sm" onClick={() => setProgressModal({ open: true, data: prog, nome: c.nome })} aria-label="Ver progresso"><Eye className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="sm" onClick={() => navigate(`/performance/cycles/${c.id}`)} aria-label="Ver progresso"><Eye className="h-4 w-4" /></Button>
                           )}
                           {podeGerenciar && (
                             <>
@@ -111,31 +109,6 @@ export function CyclesListPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={progressModal.open} onOpenChange={(o) => setProgressModal({ ...progressModal, open: o })} title={`Progresso: ${progressModal.nome}`}>
-        {progressModal.data && (
-          <div className="space-y-4 pt-2">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 rounded-lg border"><p className="text-2xl font-bold text-indigo-600">{progressModal.data.percentualConcluido}%</p><p className="text-xs text-muted-foreground">Concluído</p></div>
-              <div className="text-center p-4 rounded-lg border"><p className="text-2xl font-bold">{progressModal.data.avaliacoesRealizadas}/{progressModal.data.totalColaboradores}</p><p className="text-xs text-muted-foreground">Avaliações</p></div>
-            </div>
-            {progressModal.data.mediaGeral != null && (
-              <div className="text-center p-4 rounded-lg border"><p className="text-2xl font-bold text-emerald-600">{progressModal.data.mediaGeral}</p><p className="text-xs text-muted-foreground">Média geral</p></div>
-            )}
-            {progressModal.data.pendentes.length > 0 && (
-              <div>
-                <p className="text-sm font-medium mb-2">Colaboradores não avaliados ({progressModal.data.pendentes.length})</p>
-                <div className="max-h-40 overflow-y-auto space-y-1">
-                  {progressModal.data.pendentes.map((p) => (
-                    <button key={p.id} onClick={() => { setProgressModal({ ...progressModal, open: false }); navigate(`/performance/profiles/${p.id}`); }}
-                      className="w-full text-left text-sm p-2 rounded-lg hover:bg-accent transition-colors"
-                    >{p.nome}</button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </Dialog>
     </div>
   );
 }

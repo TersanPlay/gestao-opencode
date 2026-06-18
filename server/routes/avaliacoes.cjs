@@ -5,10 +5,11 @@ const { checkRole } = require("../middleware/rbac.cjs");
 
 router.get("/", checkRole("admin", "gestor", "assessor", "operator"), (req, res) => {
   let sql = `
-    SELECT a.*, u.name as avaliadorNome, c.nome as cicloNome
+    SELECT a.*, u.name as avaliadorNome, c.nome as cicloNome, col.nome as colaboradorNome
     FROM avaliacoes a
     LEFT JOIN users u ON a.avaliadorId = u.id
     LEFT JOIN ciclos_avaliacao c ON a.cicloId = c.id
+    LEFT JOIN colaboradores col ON a.colaboradorId = col.id
   `;
   const conditions = [];
   const params = [];

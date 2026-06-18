@@ -68,6 +68,7 @@ export interface Avaliacao {
   conceitoFinal: string;
   status: "pending" | "completed";
   createdAt: string;
+  colaboradorNome?: string;
   avaliadorNome?: string;
   cicloNome?: string;
   comentarios?: string;

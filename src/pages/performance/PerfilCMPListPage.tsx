@@ -37,9 +37,10 @@ export function PerfilCMPListPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
 
-  const loadData = (params?: any) => {
-    setLoading(true);
+  const loadData = (params?: any, isSearch?: boolean) => {
+    if (isSearch) { setSearching(true); } else { setLoading(true); }
     Promise.all([
       getColaboradores(params),
       getDepartments(),
@@ -52,7 +53,7 @@ export function PerfilCMPListPage() {
       setPage(resp.page);
       const uniqueCargos = [...new Set(resp.data.map((c) => c.cargo).filter(Boolean))] as string[];
       setCargos(uniqueCargos);
-    }).finally(() => setLoading(false));
+    }).finally(() => { setLoading(false); setSearching(false); });
   };
 
   useEffect(() => { loadData(); }, []);
@@ -67,8 +68,8 @@ export function PerfilCMPListPage() {
         vinculo: filtroVinculo || undefined,
         page,
         pageSize: 50,
-      });
-    }, 300);
+      }, true);
+    }, 400);
     return () => clearTimeout(timer);
   }, [search, filtroDept, filtroCargo, filtroGestor, filtroVinculo, page]);
 
@@ -86,7 +87,8 @@ export function PerfilCMPListPage() {
       <PageHeader title="Perfil-CMP" description="Gerenciamento de colaboradores para avaliação de desempenho" action={{ label: "Novo Colaborador", to: "/performance/profiles/new" }} />
 
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-6 relative">
+          {searching && <div className="absolute top-0 left-0 right-0 h-0.5 bg-indigo-100 overflow-hidden rounded-t-xl"><div className="h-full w-1/3 bg-indigo-600 rounded-full" style={{ animation: "indeterminate 1.4s ease-in-out infinite" }} /></div>}
           <div className="flex flex-wrap gap-3 mb-6">
             <div className="w-full sm:w-56">
               <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Buscar por nome, matrícula ou e-mail..." />

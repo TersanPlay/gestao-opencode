@@ -1,9 +1,6 @@
 .env
 node_modules/
-dist/
-corporate.db
-corporate.db-shm
-corporate.db-wal
+
 *.log
 start-dev.bat
 .agents/
@@ -11,5 +8,4 @@ start-dev.bat
 .qoder/
 .trae/
 
-# Dados pessoais (nao versionar)
-*.csv
+

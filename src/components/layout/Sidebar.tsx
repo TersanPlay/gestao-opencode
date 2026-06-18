@@ -14,6 +14,9 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  ClipboardList,
+  User,
+  Upload,
 } from "lucide-react";
 
 interface NavItem {
@@ -30,6 +33,12 @@ const allNavItems: NavItem[] = [
   { to: "/visitors", label: "Visitantes", icon: UserCheck, roles: ["admin", "gestor", "assessor", "operator"] },
   { to: "/visitors/schedule", label: "Agendamento", icon: CalendarCheck, roles: ["admin", "gestor", "assessor", "operator"] },
   { to: "/reports", label: "Relatórios", icon: BarChart3, roles: ["admin", "gestor", "assessor"] },
+  { to: "/performance/my-dashboard", label: "Meu Desempenho", icon: User, roles: ["admin", "gestor", "assessor", "operator"] },
+  { to: "/performance/profiles", label: "Perfil-CMP", icon: ClipboardList, roles: ["admin", "gestor", "assessor"] },
+  { to: "/performance/profiles/import", label: "Importar", icon: Upload, roles: ["admin", "gestor"] },
+  { to: "/performance/dashboard", label: "Dashboard RH", icon: LayoutDashboard, roles: ["admin"] },
+  { to: "/performance/team-dashboard", label: "Dashboard Equipe", icon: Users, roles: ["gestor"] },
+  { to: "/performance/cycles", label: "Ciclos", icon: CalendarCheck, roles: ["admin", "gestor"] },
   { to: "/notifications", label: "Notificações", icon: Bell, roles: ["admin", "gestor", "assessor", "operator"] },
   { to: "/logs", label: "Auditoria", icon: Shield, roles: ["admin"] },
   { to: "/settings", label: "Configurações", icon: Settings, roles: ["admin"] },

@@ -21,6 +21,19 @@ import { NotificationsPage } from "@/pages/NotificationsPage";
 import { LogsPage } from "@/pages/LogsPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { ProfilePage } from "@/pages/ProfilePage";
+import { PerfilCMPListPage } from "@/pages/performance/PerfilCMPListPage";
+import { PerfilCMPFormPage } from "@/pages/performance/PerfilCMPFormPage";
+import { PerfilCMPDetailPage } from "@/pages/performance/PerfilCMPDetailPage";
+import { CyclesListPage } from "@/pages/performance/CyclesListPage";
+import { CycleFormPage } from "@/pages/performance/CycleFormPage";
+import { EvaluationFormPage } from "@/pages/performance/EvaluationFormPage";
+import { MetaFormPage } from "@/pages/performance/MetaFormPage";
+import { PDIFormPage } from "@/pages/performance/PDIFormPage";
+import { FeedbackFormPage } from "@/pages/performance/FeedbackFormPage";
+import { ImportProfilesPage } from "@/pages/performance/ImportProfilesPage";
+import { PerformanceRHPage } from "@/pages/performance/PerformanceRHPage";
+import { PerformanceGestorPage } from "@/pages/performance/PerformanceGestorPage";
+import { PerformanceColaboradorPage } from "@/pages/performance/PerformanceColaboradorPage";
 
 export function AppRouter() {
   return (
@@ -45,6 +58,23 @@ export function AppRouter() {
         <Route path="/visitors/schedule" element={<ProtectedRoute roles={["admin", "gestor", "assessor", "operator"]}><VisitorSchedulePage /></ProtectedRoute>} />
         <Route path="/visitors/:id" element={<ProtectedRoute roles={["admin", "gestor", "assessor", "operator"]}><VisitorDetailPage /></ProtectedRoute>} />
         <Route path="/visitors/:id/edit" element={<ProtectedRoute roles={["admin", "gestor"]}><VisitorFormPage /></ProtectedRoute>} />
+        <Route path="/performance/profiles" element={<ProtectedRoute roles={["admin", "gestor", "assessor"]}><PerfilCMPListPage /></ProtectedRoute>} />
+        <Route path="/performance/profiles/import" element={<ProtectedRoute roles={["admin", "gestor"]}><ImportProfilesPage /></ProtectedRoute>} />
+        <Route path="/performance/profiles/new" element={<ProtectedRoute roles={["admin", "gestor"]}><PerfilCMPFormPage /></ProtectedRoute>} />
+        <Route path="/performance/profiles/:id" element={<ProtectedRoute roles={["admin", "gestor", "assessor", "operator"]}><PerfilCMPDetailPage /></ProtectedRoute>} />
+        <Route path="/performance/profiles/:id/edit" element={<ProtectedRoute roles={["admin", "gestor"]}><PerfilCMPFormPage /></ProtectedRoute>} />
+        <Route path="/performance/cycles" element={<ProtectedRoute roles={["admin", "gestor"]}><CyclesListPage /></ProtectedRoute>} />
+        <Route path="/performance/cycles/new" element={<ProtectedRoute roles={["admin"]}><CycleFormPage /></ProtectedRoute>} />
+        <Route path="/performance/cycles/:id/edit" element={<ProtectedRoute roles={["admin"]}><CycleFormPage /></ProtectedRoute>} />
+        <Route path="/performance/evaluations/new/:colaboradorId" element={<ProtectedRoute roles={["admin", "gestor"]}><EvaluationFormPage /></ProtectedRoute>} />
+        <Route path="/performance/metas/new/:colaboradorId" element={<ProtectedRoute roles={["admin", "gestor"]}><MetaFormPage /></ProtectedRoute>} />
+        <Route path="/performance/metas/:id/edit" element={<ProtectedRoute roles={["admin", "gestor"]}><MetaFormPage /></ProtectedRoute>} />
+        <Route path="/performance/pdi/new/:colaboradorId" element={<ProtectedRoute roles={["admin", "gestor"]}><PDIFormPage /></ProtectedRoute>} />
+        <Route path="/performance/pdi/:id/edit" element={<ProtectedRoute roles={["admin", "gestor"]}><PDIFormPage /></ProtectedRoute>} />
+        <Route path="/performance/feedbacks/new/:colaboradorId" element={<ProtectedRoute roles={["admin", "gestor", "assessor", "operator"]}><FeedbackFormPage /></ProtectedRoute>} />
+        <Route path="/performance/dashboard" element={<ProtectedRoute roles={["admin"]}><PerformanceRHPage /></ProtectedRoute>} />
+        <Route path="/performance/team-dashboard" element={<ProtectedRoute roles={["gestor"]}><PerformanceGestorPage /></ProtectedRoute>} />
+        <Route path="/performance/my-dashboard" element={<ProtectedRoute roles={["admin", "gestor", "assessor", "operator"]}><PerformanceColaboradorPage /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute roles={["admin", "gestor", "assessor", "operator"]}><NotificationsPage /></ProtectedRoute>} />
         <Route path="/logs" element={<ProtectedRoute roles={["admin", "gestor"]}><LogsPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute roles={["admin"]}><SettingsPage /></ProtectedRoute>} />

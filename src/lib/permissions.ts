@@ -12,6 +12,7 @@ const PERMISSIONS: Record<UserRole, Permission[]> = {
     "read:reports",
     "read:dashboard",
     "update:settings",
+    "create:performance", "read:performance", "update:performance", "delete:performance",
   ],
   gestor: [
     "create:users", "read:users", "update:users",
@@ -21,18 +22,21 @@ const PERMISSIONS: Record<UserRole, Permission[]> = {
     "read:logs",
     "read:reports",
     "read:dashboard",
+    "create:performance", "read:performance", "update:performance",
   ],
   assessor: [
     "create:visitors", "read:visitors",
     "read:notifications",
     "read:reports",
     "read:dashboard",
+    "read:performance",
   ],
   operator: [
     "create:visitors", "read:visitors", "update:visitors",
     "create:departments", "read:departments", "update:departments", "delete:departments",
     "read:notifications",
     "read:dashboard",
+    "read:performance",
   ],
 };
 

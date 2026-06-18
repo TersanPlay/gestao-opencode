@@ -10,3 +10,6 @@ start-dev.bat
 .opencode/
 .qoder/
 .trae/
+
+# Dados pessoais (nao versionar)
+*.csv

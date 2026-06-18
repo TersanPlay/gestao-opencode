@@ -1,4 +1,4 @@
-import type { User, Department, Visitor, TimelineEvent, DashboardMetrics, ReportVisitors, ReportDepartments, ReportUsers, Notification, AuditLog, SettingsMap } from "@/types";
+import type { User, Department, Visitor, TimelineEvent, DashboardMetrics, ReportVisitors, ReportDepartments, ReportUsers, Notification, AuditLog, SettingsMap, Colaborador, CicloAvaliacao, Avaliacao, Competencia, Meta, PDI, Feedback, HistoricoColaborador, DashboardPerformanceRH, DashboardPerformanceGestor, CicloProgress, DashboardPerformanceColaborador, ImportColaborador, ImportResult, PaginatedResponse } from "@/types";
 
 const BASE = "/api";
 
@@ -141,4 +141,146 @@ export async function getSettings(): Promise<SettingsMap> {
 
 export async function updateSettings(data: Record<string, string>): Promise<SettingsMap> {
   return request("/settings", { method: "PUT", body: JSON.stringify(data) });
+}
+
+export async function getColaboradores(params?: { search?: string; departamentoId?: string; cargo?: string; status?: string; gestorId?: string; vinculo?: string; page?: number; pageSize?: number }): Promise<PaginatedResponse<Colaborador>> {
+  const clean = params ? Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== undefined && v !== "")) : undefined;
+  const qs = clean ? "?" + new URLSearchParams(clean as Record<string, string>).toString() : "";
+  return request(`/colaboradores${qs}`);
+}
+
+export async function getColaboradorById(id: string): Promise<Colaborador> {
+  return request(`/colaboradores/${id}`);
+}
+
+export async function createColaborador(data: Partial<Colaborador>): Promise<Colaborador> {
+  return request("/colaboradores", { method: "POST", body: JSON.stringify(data) });
+}
+
+export async function updateColaborador(id: string, data: Partial<Colaborador>): Promise<void> {
+  await request(`/colaboradores/${id}`, { method: "PUT", body: JSON.stringify(data) });
+}
+
+export async function deleteColaborador(id: string): Promise<void> {
+  await request(`/colaboradores/${id}`, { method: "DELETE" });
+}
+
+export async function getCiclos(): Promise<CicloAvaliacao[]> {
+  return request("/ciclos");
+}
+
+export async function getCicloById(id: string): Promise<CicloAvaliacao> {
+  return request(`/ciclos/${id}`);
+}
+
+export async function createCiclo(data: Partial<CicloAvaliacao>): Promise<CicloAvaliacao> {
+  return request("/ciclos", { method: "POST", body: JSON.stringify(data) });
+}
+
+export async function updateCiclo(id: string, data: Partial<CicloAvaliacao>): Promise<void> {
+  await request(`/ciclos/${id}`, { method: "PUT", body: JSON.stringify(data) });
+}
+
+export async function getCompetencias(): Promise<Competencia[]> {
+  return request("/competencias");
+}
+
+export async function getAvaliacoes(params?: { colaboradorId?: string; cicloId?: string }): Promise<Avaliacao[]> {
+  const clean = params ? Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== undefined && v !== "")) : undefined;
+  const qs = clean ? "?" + new URLSearchParams(clean as Record<string, string>).toString() : "";
+  return request(`/avaliacoes${qs}`);
+}
+
+export async function getAvaliacaoById(id: string): Promise<Avaliacao & { competencias: { id: string; avaliacaoId: string; competenciaId: string; nota: number; competenciaNome: string }[] }> {
+  return request(`/avaliacoes/${id}`);
+}
+
+export async function createAvaliacao(data: { colaboradorId: string; cicloId: string; tipo: string; competencias: { competenciaId: string; nota: number }[]; comentarios?: string }): Promise<{ id: string }> {
+  return request("/avaliacoes", { method: "POST", body: JSON.stringify(data) });
+}
+
+export async function finalizarAvaliacao(id: string): Promise<{ success: boolean; notaFinal: number; conceitoFinal: string }> {
+  return request(`/avaliacoes/${id}/finalizar`, { method: "PUT" });
+}
+
+export async function getMetas(params?: { colaboradorId?: string; cicloId?: string }): Promise<Meta[]> {
+  const clean = params ? Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== undefined && v !== "")) : undefined;
+  const qs = clean ? "?" + new URLSearchParams(clean as Record<string, string>).toString() : "";
+  return request(`/metas${qs}`);
+}
+
+export async function createMeta(data: Partial<Meta>): Promise<{ id: string }> {
+  return request("/metas", { method: "POST", body: JSON.stringify(data) });
+}
+
+export async function updateMeta(id: string, data: Partial<Meta>): Promise<void> {
+  await request(`/metas/${id}`, { method: "PUT", body: JSON.stringify(data) });
+}
+
+export async function deleteMeta(id: string): Promise<void> {
+  await request(`/metas/${id}`, { method: "DELETE" });
+}
+
+export async function getPDIs(params?: { colaboradorId?: string; cicloId?: string }): Promise<PDI[]> {
+  const clean = params ? Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== undefined && v !== "")) : undefined;
+  const qs = clean ? "?" + new URLSearchParams(clean as Record<string, string>).toString() : "";
+  return request(`/pdi${qs}`);
+}
+
+export async function createPDI(data: Partial<PDI>): Promise<{ id: string }> {
+  return request("/pdi", { method: "POST", body: JSON.stringify(data) });
+}
+
+export async function updatePDI(id: string, data: Partial<PDI>): Promise<void> {
+  await request(`/pdi/${id}`, { method: "PUT", body: JSON.stringify(data) });
+}
+
+export async function deletePDI(id: string): Promise<void> {
+  await request(`/pdi/${id}`, { method: "DELETE" });
+}
+
+export async function getFeedbacks(params?: { colaboradorId?: string }): Promise<Feedback[]> {
+  const clean = params ? Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== undefined && v !== "")) : undefined;
+  const qs = clean ? "?" + new URLSearchParams(clean as Record<string, string>).toString() : "";
+  return request(`/feedbacks${qs}`);
+}
+
+export async function createFeedback(data: { colaboradorId: string; tipo: string; comentario: string }): Promise<{ id: string }> {
+  return request("/feedbacks", { method: "POST", body: JSON.stringify(data) });
+}
+
+export async function getHistorico(colaboradorId: string): Promise<HistoricoColaborador[]> {
+  return request(`/historico/${colaboradorId}`);
+}
+
+export async function getDashboardPerformanceRH(): Promise<DashboardPerformanceRH> {
+  return request("/dashboard-performance/rh");
+}
+
+export async function getDashboardPerformanceGestor(): Promise<DashboardPerformanceGestor> {
+  return request("/dashboard-performance/gestor");
+}
+
+export async function getDashboardPerformanceColaborador(userId: string): Promise<DashboardPerformanceColaborador> {
+  return request(`/dashboard-performance/colaborador?userId=${userId}`);
+}
+
+export async function getCicloProgress(id: string): Promise<CicloProgress> {
+  return request(`/ciclos/${id}/progress`);
+}
+
+export async function getMetaById(id: string): Promise<Meta> {
+  return request(`/metas/${id}`);
+}
+
+export async function getPDIById(id: string): Promise<PDI> {
+  return request(`/pdi/${id}`);
+}
+
+export async function deleteAvaliacao(id: string): Promise<void> {
+  await request(`/avaliacoes/${id}`, { method: "DELETE" });
+}
+
+export async function importColaboradores(colaboradores: ImportColaborador[]): Promise<ImportResult> {
+  return request("/colaboradores/import", { method: "POST", body: JSON.stringify({ colaboradores }) });
 }

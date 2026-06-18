@@ -36,6 +36,15 @@ app.use("/api/reports", reportsRoutes);
 app.use("/api/notifications", notificationsRoutes.router);
 app.use("/api/logs", require("./routes/logs.cjs"));
 app.use("/api/settings", require("./routes/settings.cjs"));
+app.use("/api/colaboradores", require("./routes/colaboradores.cjs"));
+app.use("/api/ciclos", require("./routes/ciclos.cjs"));
+app.use("/api/competencias", require("./routes/competencias.cjs"));
+app.use("/api/avaliacoes", require("./routes/avaliacoes.cjs"));
+app.use("/api/metas", require("./routes/metas.cjs"));
+app.use("/api/pdi", require("./routes/pdi.cjs"));
+app.use("/api/feedbacks", require("./routes/feedbacks.cjs"));
+app.use("/api/historico", require("./routes/historico.cjs"));
+app.use("/api/dashboard-performance", require("./routes/dashboard-performance.cjs"));
 
 
 

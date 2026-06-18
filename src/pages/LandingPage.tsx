@@ -2,9 +2,7 @@ import { Navbar } from "@/components/landing/Navbar";
 import { Hero } from "@/components/landing/Hero";
 import { Marquee } from "@/components/landing/Marquee";
 import { Features } from "@/components/landing/Features";
-import { Demo } from "@/components/landing/Demo";
-import { Testimonials } from "@/components/landing/Testimonials";
-import { CtaSection } from "@/components/landing/CtaSection";
+
 import { Footer } from "@/components/landing/Footer";
 
 export function LandingPage() {
@@ -14,9 +12,6 @@ export function LandingPage() {
       <Hero />
       <Marquee />
       <Features />
-      <Demo />
-      <Testimonials />
-      <CtaSection />
       <Footer />
     </div>
   );

@@ -76,11 +76,11 @@ export function ReportDepartmentsPage() {
               </TableHeader>
               <TableBody>
                 {data.departments.map((d) => (
-                  <TableRow key={d.id}>
+                  <TableRow key={d.id} className="cursor-pointer" onClick={() => navigate(`/departments/${d.id}/edit`)}>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Building2 className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{d.name}</span>
+                        <span className="font-medium hover:text-indigo-600 transition-colors">{d.name}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-medium">{d.visitorCount}</TableCell>

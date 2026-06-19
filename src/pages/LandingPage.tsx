@@ -2,7 +2,7 @@ import { Navbar } from "@/components/landing/Navbar";
 import { Hero } from "@/components/landing/Hero";
 import { Marquee } from "@/components/landing/Marquee";
 import { Features } from "@/components/landing/Features";
-
+import { BentoModules } from "@/components/landing/BentoModules";
 import { Footer } from "@/components/landing/Footer";
 
 export function LandingPage() {
@@ -12,6 +12,7 @@ export function LandingPage() {
       <Hero />
       <Marquee />
       <Features />
+      <BentoModules />
       <Footer />
     </div>
   );

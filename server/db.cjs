@@ -251,6 +251,13 @@ const SETTINGS_SEED = [
   { key: "notificacoes_ativas", value: "true", description: "Ativar notificações do sistema" },
   { key: "horario_abertura", value: "08:00", description: "Horário de abertura da portaria" },
   { key: "horario_fechamento", value: "18:00", description: "Horário de fechamento da portaria" },
+  { key: "email_notificacoes", value: "false", description: "Enviar notificações por email" },
+  { key: "smtp_host", value: "", description: "Servidor SMTP" },
+  { key: "smtp_port", value: "587", description: "Porta SMTP" },
+  { key: "smtp_secure", value: "false", description: "SMTP usar TLS" },
+  { key: "smtp_user", value: "", description: "Usuário SMTP" },
+  { key: "smtp_pass", value: "", description: "Senha SMTP" },
+  { key: "smtp_from", value: "noreply@gestao-opencode.app", description: "Remetente de email" },
 ];
 
 const seedSettings = db.prepare("INSERT OR IGNORE INTO settings (key, value, description) VALUES (?, ?, ?)");
@@ -260,6 +267,45 @@ try { db.exec("ALTER TABLE visitors ADD COLUMN isDisposable INTEGER DEFAULT 0");
 try { db.exec("ALTER TABLE avaliacoes ADD COLUMN comentarios TEXT DEFAULT ''"); } catch (e) {}
 try { db.exec("ALTER TABLE colaboradores ADD COLUMN ano INTEGER DEFAULT NULL"); } catch (e) {}
 try { db.exec("ALTER TABLE colaboradores ADD COLUMN mes INTEGER DEFAULT NULL"); } catch (e) {}
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS documentos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    colaboradorId INTEGER NOT NULL,
+    nome TEXT NOT NULL,
+    tipo TEXT DEFAULT '',
+    arquivo TEXT NOT NULL,
+    mimeType TEXT DEFAULT '',
+    tamanho INTEGER DEFAULT 0,
+    createdAt TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (colaboradorId) REFERENCES colaboradores(id) ON DELETE CASCADE
+  );
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS cursos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    descricao TEXT DEFAULT '',
+    cargaHoraria INTEGER DEFAULT 0,
+    createdAt TEXT DEFAULT (datetime('now'))
+  );
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS colaborador_cursos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    colaboradorId INTEGER NOT NULL,
+    cursoId INTEGER NOT NULL,
+    dataInicio TEXT DEFAULT '',
+    dataFim TEXT DEFAULT '',
+    status TEXT DEFAULT 'pendente',
+    certificado TEXT DEFAULT '',
+    createdAt TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (colaboradorId) REFERENCES colaboradores(id) ON DELETE CASCADE,
+    FOREIGN KEY (cursoId) REFERENCES cursos(id) ON DELETE CASCADE
+  );
+`);
 
 const existing = db.prepare("SELECT id FROM users WHERE email = ?").get("admin.admin@admin.com");
 

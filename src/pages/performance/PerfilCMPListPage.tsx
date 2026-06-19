@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { getColaboradores, getDepartments, getUsers } from "@/services/api";
-import { Target, BookOpen, CheckCircle2, Clock, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
+import { Target, BookOpen, CheckCircle2, Clock, AlertCircle, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import type { Colaborador, Department, User, PaginatedResponse } from "@/types";
 
 const statusColors: Record<string, "success" | "warning" | "destructive" | "default"> = {
@@ -78,13 +79,47 @@ export function PerfilCMPListPage() {
     setPage(p);
   };
 
+  const exportCSV = async () => {
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    if (filtroDept) params.set("departamentoId", filtroDept);
+    if (filtroCargo) params.set("cargo", filtroCargo);
+    if (filtroGestor) params.set("gestorId", filtroGestor);
+    if (filtroVinculo) params.set("vinculo", filtroVinculo);
+    const qs = params.toString();
+    const token = localStorage.getItem("auth_token");
+    const res = await fetch(`/api/export/colaboradores${qs ? "?" + qs : ""}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) { toast.error("Erro ao exportar CSV"); return; }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `colaboradores-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center h-64"><div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" /></div>;
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Perfil-CMP" description="Gerenciamento de colaboradores para avaliação de desempenho" action={{ label: "Novo Colaborador", to: "/performance/profiles/new" }} />
+      <PageHeader
+        title="Perfil-CMP"
+        description="Gerenciamento de colaboradores para avaliação de desempenho"
+        action={{ label: "Novo Colaborador", to: "/performance/profiles/new" }}
+      />
+
+      <div className="flex justify-end -mt-4 mb-2">
+        <Button variant="outline" size="sm" className="gap-2" onClick={exportCSV}>
+          <Download className="h-4 w-4" /> Exportar CSV
+        </Button>
+      </div>
 
       <Card>
         <CardContent className="pt-6 relative">

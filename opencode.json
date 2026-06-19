@@ -1,6 +1,25 @@
 {
   "$schema": "https://opencode.ai/config.json",
 
+  "plugin": ["~/.config/opencode/node_modules/superpowers"],
+
+  "instructions": ["AGENTS.md"],
+
+  "command": {
+    "build": {
+      "template": "Execute npm run build no diretório do projeto",
+      "description": "Build do frontend (TypeScript + Vite)"
+    },
+    "dev": {
+      "template": "Inicie o servidor Express (node server/index.cjs) e o Vite dev server (npm run dev) em paralelo",
+      "description": "Inicia servidor dev (backend + frontend)"
+    },
+    "lint": {
+      "template": "Execute TypeScript check (npx tsc --noEmit) e verifique se há erros",
+      "description": "Verifica lint e tipos do projeto"
+    }
+  },
+
   "mcp": {
     "magic": {
       "type": "local",

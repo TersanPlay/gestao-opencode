@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const { authenticate } = require("./middleware/auth.cjs");
 const { auditLog } = require("./middleware/audit.cjs");
 const authRoutes = require("./routes/auth.cjs");
@@ -45,8 +46,16 @@ app.use("/api/pdi", require("./routes/pdi.cjs"));
 app.use("/api/feedbacks", require("./routes/feedbacks.cjs"));
 app.use("/api/historico", require("./routes/historico.cjs"));
 app.use("/api/dashboard-performance", require("./routes/dashboard-performance.cjs"));
+app.use("/api/export", require("./routes/export.cjs"));
+app.use("/api/documentos", require("./routes/documentos.cjs"));
+app.use("/api/cursos", require("./routes/cursos.cjs"));
 
-
+app.use((err, req, res, next) => {
+  if (err.code === "LIMIT_FILE_SIZE") return res.status(400).json({ error: "Arquivo muito grande. Maximo 20MB." });
+  if (err.message && err.message.includes("Tipo de arquivo")) return res.status(400).json({ error: err.message });
+  console.error(err);
+  res.status(500).json({ error: "Erro interno do servidor" });
+});
 
 app.listen(PORT, () => {
   console.log(`✓ Servidor rodando em http://localhost:${PORT}`);

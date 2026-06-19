@@ -269,6 +269,10 @@ export async function getCicloProgress(id: string): Promise<CicloProgress> {
   return request(`/ciclos/${id}/progress`);
 }
 
+export function exportAvaliacoes(cicloId: string) {
+  window.open(`/api/export/avaliacoes/${cicloId}`, "_blank");
+}
+
 export async function getMetaById(id: string): Promise<Meta> {
   return request(`/metas/${id}`);
 }
@@ -279,6 +283,78 @@ export async function getPDIById(id: string): Promise<PDI> {
 
 export async function deleteAvaliacao(id: string): Promise<void> {
   await request(`/avaliacoes/${id}`, { method: "DELETE" });
+}
+
+export async function getDocumentos(colaboradorId: string): Promise<{ id: string; nome: string; tipo: string; mimeType: string; tamanho: number; createdAt: string }[]> {
+  return request(`/documentos/${colaboradorId}`);
+}
+
+export async function uploadDocumento(formData: FormData): Promise<{ id: string }> {
+  const token = localStorage.getItem("auth_token");
+  const res = await fetch("/api/documentos", {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (!res.ok) { const err = await res.json().catch(() => ({ error: res.statusText })); throw new Error(err.error || `HTTP ${res.status}`); }
+  return res.json();
+}
+
+export async function downloadDocumento(id: string): Promise<void> {
+  const token = localStorage.getItem("auth_token");
+  const res = await fetch(`/api/documentos/${id}/download`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  if (!res.ok) { const err = await res.json().catch(() => ({ error: res.statusText })); throw new Error(err.error || `HTTP ${res.status}`); }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url;
+  const cd = res.headers.get("content-disposition");
+  const match = cd && cd.match(/filename="?(.+?)"?$/);
+  a.download = match ? match[1] : "documento";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+export async function deleteDocumento(id: string): Promise<void> {
+  await request(`/documentos/${id}`, { method: "DELETE" });
+}
+
+export async function getCursos(): Promise<{ id: string; nome: string; descricao: string; cargaHoraria: number; createdAt: string }[]> {
+  return request("/cursos");
+}
+
+export async function getCursoById(id: string): Promise<any> {
+  return request(`/cursos/${id}`);
+}
+
+export async function createCurso(data: { nome: string; descricao?: string; cargaHoraria?: number }): Promise<{ id: string }> {
+  return request("/cursos", { method: "POST", body: JSON.stringify(data) });
+}
+
+export async function updateCurso(id: string, data: any): Promise<void> {
+  await request(`/cursos/${id}`, { method: "PUT", body: JSON.stringify(data) });
+}
+
+export async function deleteCurso(id: string): Promise<void> {
+  await request(`/cursos/${id}`, { method: "DELETE" });
+}
+
+export async function getCursosColaborador(colaboradorId: string): Promise<any[]> {
+  return request(`/cursos/colaborador/${colaboradorId}`);
+}
+
+export async function getAllVinculos(): Promise<any[]> {
+  return request("/cursos/vinculos");
+}
+
+export async function vincularCurso(data: { colaboradorId: string; cursoId: string; dataInicio?: string; dataFim?: string }): Promise<{ id: string }> {
+  return request("/cursos/vincular", { method: "POST", body: JSON.stringify(data) });
+}
+
+export async function updateVinculoCurso(id: string, data: any): Promise<void> {
+  await request(`/cursos/vincular/${id}`, { method: "PUT", body: JSON.stringify(data) });
+}
+
+export async function deleteVinculoCurso(id: string): Promise<void> {
+  await request(`/cursos/vincular/${id}`, { method: "DELETE" });
 }
 
 export async function importColaboradores(colaboradores: ImportColaborador[]): Promise<ImportResult> {

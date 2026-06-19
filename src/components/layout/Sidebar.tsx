@@ -17,6 +17,7 @@ import {
   ClipboardList,
   User,
   Upload,
+  BookOpen,
 } from "lucide-react";
 
 interface NavItem {
@@ -42,6 +43,7 @@ const allNavItems: NavItem[] = [
   { to: "/notifications", label: "Notificações", icon: Bell, roles: ["admin", "gestor", "assessor", "operator"] },
   { to: "/logs", label: "Auditoria", icon: Shield, roles: ["admin"] },
   { to: "/settings", label: "Configurações", icon: Settings, roles: ["admin"] },
+  { to: "/performance/cursos", label: "Cursos", icon: BookOpen, roles: ["admin", "gestor", "assessor"] },
 ];
 
 export function Sidebar() {

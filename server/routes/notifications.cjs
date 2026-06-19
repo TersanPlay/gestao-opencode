@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../db.cjs");
+const { sendEmail } = require("../services/email.cjs");
 const { checkRole } = require("../middleware/rbac.cjs");
 
 router.get("/unread-count", checkRole("admin", "gestor", "assessor", "operator"), (req, res) => {
@@ -27,9 +28,20 @@ router.post("/read-all", checkRole("admin", "gestor", "assessor", "operator"), (
   res.json({ success: true });
 });
 
-function notifyUser(userId, type, title, message, link) {
+async function notifyUser(userId, type, title, message, link) {
   try {
     db.prepare("INSERT INTO notifications (userId, type, title, message, link) VALUES (?, ?, ?, ?, ?)").run(userId, type, title, message, link || null);
+    const emailNotif = db.prepare("SELECT value FROM settings WHERE key = 'email_notificacoes'").get();
+    if (emailNotif && emailNotif.value === "true") {
+      const user = db.prepare("SELECT email, name FROM users WHERE id = ? AND active = 1").get(userId);
+      if (user && user.email) {
+        await sendEmail({
+          to: user.email,
+          subject: `[Gestão] ${title}`,
+          html: `<p>${message}</p>${link ? `<p><a href="${link}">Abrir</a></p>` : ""}`,
+        });
+      }
+    }
   } catch (e) { console.error("notifyUser error:", e.message); }
 }
 

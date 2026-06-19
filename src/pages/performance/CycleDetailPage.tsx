@@ -6,11 +6,17 @@ import { SearchInput } from "@/components/shared/SearchInput";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getCicloById, getCicloProgress, getAvaliacoes } from "@/services/api";
-import { ChevronRight } from "lucide-react";
-import type { CicloAvaliacao, CicloProgress, Avaliacao } from "@/types";
+import { getCicloById, getCicloProgress, getAvaliacoes, getMetas, getPDIs, exportAvaliacoes } from "@/services/api";
+import { ChevronRight, Download } from "lucide-react";
+import type { CicloAvaliacao, CicloProgress, Avaliacao, Meta, PDI } from "@/types";
 
-type Tab = "nao_avaliados" | "em_andamento" | "avaliados";
+type Tab = "nao_avaliados" | "em_andamento" | "avaliados" | "metas" | "pdi";
+
+const statusMetaVariant: Record<string, "default" | "warning" | "success" | "secondary"> = {
+  pending: "secondary",
+  in_progress: "warning",
+  completed: "success",
+};
 
 export function CycleDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +24,8 @@ export function CycleDetailPage() {
   const [ciclo, setCiclo] = useState<CicloAvaliacao | null>(null);
   const [progress, setProgress] = useState<CicloProgress | null>(null);
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
+  const [metas, setMetas] = useState<Meta[]>([]);
+  const [pdis, setPDIs] = useState<PDI[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -27,11 +35,19 @@ export function CycleDetailPage() {
     if (!id) return;
     setLoading(true);
     setError(null);
-    Promise.all([getCicloById(id), getCicloProgress(id), getAvaliacoes({ cicloId: id })])
-      .then(([c, p, avs]) => {
+    Promise.all([
+      getCicloById(id),
+      getCicloProgress(id),
+      getAvaliacoes({ cicloId: id }),
+      getMetas({ cicloId: id }),
+      getPDIs({ cicloId: id }),
+    ])
+      .then(([c, p, avs, m, pd]) => {
         setCiclo(c);
         setProgress(p);
         setAvaliacoes(avs);
+        setMetas(m);
+        setPDIs(pd);
       })
       .catch((err) => {
         setError(err.message || "Erro ao carregar dados do ciclo");
@@ -65,15 +81,67 @@ export function CycleDetailPage() {
     { key: "nao_avaliados", label: "Não avaliados", count: progress?.pendentes.length ?? 0 },
     { key: "em_andamento", label: "Em andamento", count: emProgresso.length },
     { key: "avaliados", label: "Avaliados", count: avaliados.length },
+    { key: "metas", label: "Metas", count: metas.length },
+    { key: "pdi", label: "PDI", count: pdis.length },
   ];
 
-  const tabHref: Record<Tab, React.ReactNode> = {
-    nao_avaliados: null,
-    em_andamento: null,
-    avaliados: null,
-  };
-
   const renderTabContent = () => {
+    if (activeTab === "metas") {
+      const filtered = metas.filter((m) => m.nome.toLowerCase().includes(search.toLowerCase()) || (m.colaboradorNome || "").toLowerCase().includes(search.toLowerCase()));
+      if (metas.length === 0) return <p className="text-center text-muted-foreground py-6">Nenhuma meta neste ciclo.</p>;
+      return (
+        <div className="space-y-1">
+          {filtered.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => navigate(`/performance/profiles/${m.colaboradorId}`)}
+              className="w-full flex items-center justify-between text-left h-auto py-2 px-3 rounded-xl hover:bg-accent transition-colors"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{m.nome}</p>
+                <p className="text-xs text-muted-foreground">{m.colaboradorNome || "—"}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0 ml-2">
+                <Badge variant={statusMetaVariant[m.status] || "secondary"} className="text-xs">{m.status === "in_progress" ? "Em andamento" : m.status === "completed" ? "Concluída" : "Pendente"}</Badge>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </button>
+          ))}
+          {search && filtered.length === 0 && (
+            <p className="text-sm text-muted-foreground py-2 text-center">Nenhum resultado para "{search}"</p>
+          )}
+        </div>
+      );
+    }
+
+    if (activeTab === "pdi") {
+      const filtered = pdis.filter((p) => p.objetivo.toLowerCase().includes(search.toLowerCase()) || (p.colaboradorNome || "").toLowerCase().includes(search.toLowerCase()));
+      if (pdis.length === 0) return <p className="text-center text-muted-foreground py-6">Nenhum PDI neste ciclo.</p>;
+      return (
+        <div className="space-y-1">
+          {filtered.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => navigate(`/performance/profiles/${p.colaboradorId}`)}
+              className="w-full flex items-center justify-between text-left h-auto py-2 px-3 rounded-xl hover:bg-accent transition-colors"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{p.objetivo}</p>
+                <p className="text-xs text-muted-foreground">{p.colaboradorNome || "—"}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0 ml-2">
+                <Badge variant={statusMetaVariant[p.status] || "secondary"} className="text-xs">{p.status === "in_progress" ? "Em andamento" : p.status === "completed" ? "Concluído" : "Pendente"}</Badge>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </button>
+          ))}
+          {search && filtered.length === 0 && (
+            <p className="text-sm text-muted-foreground py-2 text-center">Nenhum resultado para "{search}"</p>
+          )}
+        </div>
+      );
+    }
+
     let items: { id: string; nome: string; nota?: number; conceito?: string }[] = [];
 
     if (activeTab === "nao_avaliados") {
@@ -99,13 +167,12 @@ export function CycleDetailPage() {
     return (
       <div className="space-y-1">
         {filtered.map((i) => (
-          <Button
+          <button
             key={i.id}
-            variant="ghost"
-            className="w-full justify-between text-left h-auto py-2 px-3"
+            className="w-full flex items-center justify-between text-left h-auto py-2 px-3 rounded-xl hover:bg-accent transition-colors"
             onClick={() => navigate(`/performance/profiles/${i.id}`)}
           >
-            <span>{i.nome}</span>
+            <span className="text-sm font-medium">{i.nome}</span>
             <span className="flex items-center gap-2">
               {i.conceito && (
                 <Badge variant={i.conceito === "Excelente" ? "success" : i.conceito === "Bom" ? "info" : i.conceito === "Regular" ? "warning" : "destructive"} className="text-xs">
@@ -114,7 +181,7 @@ export function CycleDetailPage() {
               )}
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </span>
-          </Button>
+          </button>
         ))}
         {search && filtered.length === 0 && (
           <p className="text-sm text-muted-foreground py-2 text-center">Nenhum resultado para "{search}"</p>
@@ -147,6 +214,7 @@ export function CycleDetailPage() {
         title={`Progresso: ${ciclo.nome}`}
         description={`${ciclo.dataInicio || "—"} até ${ciclo.dataFim || "—"}`}
         action={{ label: "Voltar", to: "/performance/cycles" }}
+        secondaryActions={[]}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -172,6 +240,13 @@ export function CycleDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      <div className="flex justify-end">
+        <Button variant="outline" size="sm" className="gap-2" onClick={() => exportAvaliacoes(id!)}>
+          <Download className="h-4 w-4" />
+          Exportar Avaliações CSV
+        </Button>
+      </div>
 
       <Card>
         <CardContent className="pt-6">

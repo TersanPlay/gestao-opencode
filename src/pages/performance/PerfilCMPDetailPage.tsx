@@ -7,12 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableHeader, TableBody, TableRow, TableCell, TableHead } from "@/components/ui/table";
-import { getColaboradorById, getAvaliacoes, getAvaliacaoById, getFeedbacks, getMetas, getPDIs, getHistorico, deleteMeta, deletePDI } from "@/services/api";
-import { Plus, Target, BookOpen, Star, ClipboardCheck, MessageSquare, History, Pencil, Trash2, Eye } from "lucide-react";
+import { getColaboradorById, getAvaliacoes, getAvaliacaoById, getFeedbacks, getMetas, getPDIs, getHistorico, deleteMeta, deletePDI, getDocumentos, getCursosColaborador, uploadDocumento, deleteDocumento, downloadDocumento, getCursos, vincularCurso, updateVinculoCurso, deleteVinculoCurso } from "@/services/api";
+import { Plus, Target, BookOpen, Star, ClipboardCheck, MessageSquare, History, Pencil, Trash2, Eye, FileText, FolderOpen, Upload } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import type { Colaborador, Avaliacao, Feedback, Meta, PDI, HistoricoColaborador } from "@/types";
+import type { Colaborador, Avaliacao, Feedback, Meta, PDI, HistoricoColaborador, Documento, CursoColaborador, Curso } from "@/types";
 
 const statusColors: Record<string, "success" | "warning" | "destructive" | "default"> = {
   ativo: "success", afastado: "warning", desligado: "destructive",
@@ -22,7 +25,7 @@ const conceitoColors: Record<string, "success" | "warning" | "destructive" | "in
   Excelente: "success", Bom: "info", Regular: "warning", Ruim: "destructive", Insatisfatorio: "destructive",
 };
 
-type Tab = "resumo" | "avaliacoes" | "feedbacks" | "metas" | "pdi" | "historico";
+type Tab = "resumo" | "avaliacoes" | "feedbacks" | "metas" | "pdi" | "historico" | "documentos" | "cursos";
 
 const tabs: { key: Tab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { key: "resumo", label: "Resumo", icon: Star },
@@ -30,6 +33,8 @@ const tabs: { key: Tab; label: string; icon: React.ComponentType<{ className?: s
   { key: "feedbacks", label: "Feedbacks", icon: MessageSquare },
   { key: "metas", label: "Metas", icon: Target },
   { key: "pdi", label: "PDI", icon: BookOpen },
+  { key: "documentos", label: "Documentos", icon: FileText },
+  { key: "cursos", label: "Cursos", icon: FolderOpen },
   { key: "historico", label: "Histórico", icon: History },
 ];
 
@@ -47,7 +52,18 @@ export function PerfilCMPDetailPage() {
   const [activeTab, setActiveTab] = useState<Tab>("resumo");
   const [loading, setLoading] = useState(true);
 
+  const [documentos, setDocumentos] = useState<Documento[]>([]);
+  const [cursosColab, setCursosColab] = useState<CursoColaborador[]>([]);
+  const [cursosCatalogo, setCursosCatalogo] = useState<Curso[]>([]);
   const [avModal, setAvModal] = useState<{ open: boolean; competencias: any[]; comentarios: string; avaliador: string; ciclo: string }>({ open: false, competencias: [], comentarios: "", avaliador: "", ciclo: "" });
+  const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; type: "meta" | "pdi"; item: Meta | PDI | null }>({ open: false, type: "meta", item: null });
+  const [vinculoDialog, setVinculoDialog] = useState(false);
+  const [editandoVinculo, setEditandoVinculo] = useState<CursoColaborador | null>(null);
+  const [vinculoCursoId, setVinculoCursoId] = useState("");
+  const [vinculoDataInicio, setVinculoDataInicio] = useState("");
+  const [vinculoDataFim, setVinculoDataFim] = useState("");
+  const [vinculoStatus, setVinculoStatus] = useState("pendente");
+  const [confirmDeleteVinculo, setConfirmDeleteVinculo] = useState<CursoColaborador | null>(null);
 
   const podeGerenciar = can("create", "performance");
 
@@ -68,6 +84,9 @@ export function PerfilCMPDetailPage() {
       setPDIs(pd);
       setHistorico(hist);
     }).catch(() => toast.error("Erro ao carregar dados")).finally(() => setLoading(false));
+    getDocumentos(id).then(setDocumentos).catch(() => toast.error("Erro ao carregar documentos"));
+    getCursosColaborador(id).then(setCursosColab).catch(() => toast.error("Erro ao carregar cursos"));
+    getCursos().then(setCursosCatalogo).catch(() => {});
   };
 
   useEffect(() => { loadData(); }, [id]);
@@ -80,13 +99,22 @@ export function PerfilCMPDetailPage() {
   };
 
   const handleDeleteMeta = async (meta: Meta) => {
-    if (!confirm(`Excluir meta "${meta.nome}"?`)) return;
-    try { await deleteMeta(meta.id); toast.success("Meta excluída"); loadData(); } catch (err: any) { toast.error(err.message || "Erro ao excluir"); }
+    setConfirmDelete({ open: true, type: "meta", item: meta });
   };
 
   const handleDeletePDI = async (pdi: PDI) => {
-    if (!confirm(`Excluir PDI "${pdi.objetivo}"?`)) return;
-    try { await deletePDI(pdi.id); toast.success("PDI excluído"); loadData(); } catch (err: any) { toast.error(err.message || "Erro ao excluir"); }
+    setConfirmDelete({ open: true, type: "pdi", item: pdi });
+  };
+
+  const executeDelete = async () => {
+    const { type, item } = confirmDelete;
+    if (!item) return;
+    try {
+      if (type === "meta") { await deleteMeta(item.id); toast.success("Meta excluída"); }
+      else { await deletePDI(item.id); toast.success("PDI excluído"); }
+      setConfirmDelete({ open: false, type: "meta", item: null });
+      loadData();
+    } catch (err: any) { toast.error(err.message || "Erro ao excluir"); }
   };
 
   if (loading || !colaborador) {
@@ -285,6 +313,87 @@ export function PerfilCMPDetailPage() {
             </div>
           )}
 
+          {activeTab === "documentos" && (
+            <div className="space-y-4">
+              {podeGerenciar && (
+                <div className="flex items-center gap-2">
+                  <input type="file" id="doc-upload" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const formData = new FormData();
+                    formData.append("arquivo", file);
+                    formData.append("colaboradorId", id!);
+                    formData.append("nome", file.name);
+                    try {
+                      await uploadDocumento(formData);
+                      toast.success("Documento enviado");
+                      loadData();
+                    } catch { toast.error("Erro ao enviar"); }
+                    e.target.value = "";
+                  }} />
+                  <Button variant="indigo" onClick={() => document.getElementById("doc-upload")?.click()}><Upload className="h-4 w-4 mr-1" /> Upload</Button>
+                </div>
+              )}
+              {documentos.length === 0 ? <EmptyState title="Nenhum documento" description="Nenhum documento anexado." /> : (
+                <Table>
+                  <TableHeader>
+                    <TableRow><TableHead>Nome</TableHead><TableHead>Tipo</TableHead><TableHead>Tamanho</TableHead><TableHead>Data</TableHead><TableHead className="text-right">Ações</TableHead></TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {documentos.map((d) => (
+                      <TableRow key={d.id}>
+                        <TableCell className="font-medium">{d.nome}</TableCell>
+                        <TableCell><Badge variant="outline">{d.tipo}</Badge></TableCell>
+                        <TableCell className="text-sm">{(d.tamanho / 1024).toFixed(1)} KB</TableCell>
+                        <TableCell className="text-sm">{new Date(d.createdAt).toLocaleDateString()}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button variant="ghost" size="sm" onClick={() => downloadDocumento(d.id)} aria-label="Baixar"><Eye className="h-4 w-4" /></Button>
+                            {podeGerenciar && <Button variant="ghost" size="sm" onClick={async () => { try { await deleteDocumento(d.id); toast.success("Documento excluído"); loadData(); } catch { toast.error("Erro ao excluir"); } }} aria-label="Excluir"><Trash2 className="h-4 w-4 text-rose-500" /></Button>}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          )}
+
+          {activeTab === "cursos" && (
+            <div className="space-y-4">
+              {podeGerenciar && (
+                <Button onClick={() => { setEditandoVinculo(null); setVinculoCursoId(""); setVinculoDataInicio(""); setVinculoDataFim(""); setVinculoStatus("pendente"); setVinculoDialog(true); }} className="gap-2"><Plus className="h-4 w-4" />Vincular Curso</Button>
+              )}
+              {cursosColab.length === 0 ? <EmptyState title="Nenhum curso" description="Este colaborador ainda não está matriculado em cursos." /> : (
+                <Table>
+                  <TableHeader>
+                    <TableRow><TableHead>Curso</TableHead><TableHead>Carga Horária</TableHead><TableHead>Início</TableHead><TableHead>Término</TableHead><TableHead>Status</TableHead>{podeGerenciar && <TableHead className="text-right">Ações</TableHead>}</TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {cursosColab.map((c: any) => (
+                      <TableRow key={c.id}>
+                        <TableCell className="font-medium">{c.cursoNome || "—"}</TableCell>
+                        <TableCell className="text-sm">{c.cursoCargaHoraria || "—"}h</TableCell>
+                        <TableCell className="text-sm">{c.dataInicio ? new Date(c.dataInicio).toLocaleDateString() : "—"}</TableCell>
+                        <TableCell className="text-sm">{c.dataFim ? new Date(c.dataFim).toLocaleDateString() : "—"}</TableCell>
+                        <TableCell><Badge variant={c.status === "concluido" ? "success" : c.status === "em_andamento" ? "warning" : "default"}>{c.status || "—"}</Badge></TableCell>
+                        {podeGerenciar && (
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button variant="ghost" size="icon" onClick={() => { setEditandoVinculo(c); setVinculoCursoId(c.cursoId); setVinculoDataInicio(c.dataInicio || ""); setVinculoDataFim(c.dataFim || ""); setVinculoStatus(c.status || "pendente"); setVinculoDialog(true); }} aria-label="Editar vínculo"><Pencil className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => setConfirmDeleteVinculo(c)} aria-label="Excluir vínculo"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                            </div>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          )}
+
           {activeTab === "historico" && (
             <div className="space-y-4">
               {historico.length === 0 ? <EmptyState title="Nenhum evento" description="Ainda não há eventos no histórico." /> : (
@@ -326,6 +435,82 @@ export function PerfilCMPDetailPage() {
           {avModal.comentarios && (
             <div><p className="text-sm font-medium mb-1">Comentários:</p><p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">{avModal.comentarios}</p></div>
           )}
+        </div>
+      </Dialog>
+
+      <Dialog open={confirmDelete.open} onOpenChange={(o) => setConfirmDelete({ ...confirmDelete, open: o })} title={confirmDelete.type === "meta" ? "Excluir Meta" : "Excluir PDI"} description={`Tem certeza que deseja excluir "${confirmDelete.type === "meta" ? (confirmDelete.item as Meta)?.nome : (confirmDelete.item as PDI)?.objetivo}"?`}>
+        <div className="flex justify-end gap-3 pt-2">
+          <Button variant="outline" onClick={() => setConfirmDelete({ open: false, type: "meta", item: null })}>Cancelar</Button>
+          <Button variant="destructive" onClick={executeDelete}>Excluir</Button>
+        </div>
+      </Dialog>
+
+      <Dialog open={vinculoDialog} onOpenChange={setVinculoDialog} title={editandoVinculo ? "Editar Vínculo" : "Vincular Curso"} description={editandoVinculo ? "Atualize os dados do vínculo." : "Matricule o colaborador em um curso."}>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="vinculo-curso">Curso</Label>
+            <Select value={vinculoCursoId} onValueChange={setVinculoCursoId}>
+              <SelectTrigger id="vinculo-curso"><SelectValue placeholder="Selecione um curso" /></SelectTrigger>
+              <SelectContent>
+                {cursosCatalogo.map((curso) => (
+                  <SelectItem key={curso.id} value={curso.id}>{curso.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="vinculo-status">Status</Label>
+            <Select value={vinculoStatus} onValueChange={setVinculoStatus}>
+              <SelectTrigger id="vinculo-status"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pendente">Pendente</SelectItem>
+                <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                <SelectItem value="concluido">Concluído</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="vinculo-data-inicio">Data Início</Label>
+              <Input id="vinculo-data-inicio" type="date" value={vinculoDataInicio} onChange={(e) => setVinculoDataInicio(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="vinculo-data-fim">Data Término</Label>
+              <Input id="vinculo-data-fim" type="date" value={vinculoDataFim} onChange={(e) => setVinculoDataFim(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setVinculoDialog(false)}>Cancelar</Button>
+            <Button onClick={async () => {
+              if (!vinculoCursoId) { toast.error("Selecione um curso"); return; }
+              try {
+                if (editandoVinculo) {
+                  await updateVinculoCurso(editandoVinculo.id, { status: vinculoStatus, dataInicio: vinculoDataInicio || undefined, dataFim: vinculoDataFim || undefined });
+                  toast.success("Vínculo atualizado");
+                } else {
+                  await vincularCurso({ colaboradorId: id!, cursoId: vinculoCursoId, dataInicio: vinculoDataInicio || undefined, dataFim: vinculoDataFim || undefined });
+                  toast.success("Curso vinculado com sucesso");
+                }
+                setVinculoDialog(false);
+                getCursosColaborador(id!).then(setCursosColab).catch(() => {});
+              } catch (err: any) { toast.error(err.message || "Erro ao salvar vínculo"); }
+            }}>Salvar</Button>
+          </div>
+        </div>
+      </Dialog>
+
+      <Dialog open={!!confirmDeleteVinculo} onOpenChange={() => setConfirmDeleteVinculo(null)} title="Excluir Vínculo" description={`Tem certeza que deseja remover "${confirmDeleteVinculo?.cursoNome}" deste colaborador?`}>
+        <div className="flex justify-end gap-2 pt-2">
+          <Button variant="outline" onClick={() => setConfirmDeleteVinculo(null)}>Cancelar</Button>
+          <Button variant="destructive" onClick={async () => {
+            if (!confirmDeleteVinculo) return;
+            try {
+              await deleteVinculoCurso(confirmDeleteVinculo.id);
+              toast.success("Vínculo removido");
+              setConfirmDeleteVinculo(null);
+              getCursosColaborador(id!).then(setCursosColab).catch(() => {});
+            } catch (err: any) { toast.error(err.message || "Erro ao remover vínculo"); }
+          }}>Excluir</Button>
         </div>
       </Dialog>
     </div>

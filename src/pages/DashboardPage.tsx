@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,7 @@ import { Users, Building2, UserCheck, Clock, ArrowRight, TrendingUp } from "luci
 import { VisitorStatusBadge } from "@/components/shared/StatusBadge";
 
 export function DashboardPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [recentVisitors, setRecentVisitors] = useState<Visitor[]>([]);
@@ -72,7 +74,11 @@ export function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {recentVisitors.map((v) => (
-              <div key={v.id} className="flex items-center justify-between rounded-xl bg-muted/50 p-3 transition-colors hover:bg-muted">
+              <button
+                key={v.id}
+                onClick={() => navigate(`/visitors/${v.id}`)}
+                className="w-full flex items-center justify-between rounded-xl bg-muted/50 p-3 transition-colors hover:bg-muted text-left"
+              >
                 <div className="flex items-center gap-3">
                   <Avatar name={v.name} src={v.photo} size="sm" />
                   <div>
@@ -81,7 +87,7 @@ export function DashboardPage() {
                   </div>
                 </div>
                 <VisitorStatusBadge status={v.status || "registered"} />
-              </div>
+              </button>
             ))}
           </CardContent>
         </Card>
@@ -93,7 +99,11 @@ export function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {recentUsers.map((u) => (
-              <div key={u.id} className="flex items-center justify-between rounded-xl bg-muted/50 p-3 transition-colors hover:bg-muted">
+              <button
+                key={u.id}
+                onClick={() => navigate(`/users/${u.id}/edit`)}
+                className="w-full flex items-center justify-between rounded-xl bg-muted/50 p-3 transition-colors hover:bg-muted text-left"
+              >
                 <div className="flex items-center gap-3">
                   <Avatar name={u.name} size="sm" />
                   <div>
@@ -104,7 +114,7 @@ export function DashboardPage() {
                 <Badge variant={u.role === "admin" ? "default" : u.role === "gestor" ? "success" : u.role === "assessor" ? "warning" : "slate"}>
                   {u.role === "admin" ? "Admin" : u.role === "gestor" ? "Gestor" : u.role === "assessor" ? "Assessor" : "Operador"}
                 </Badge>
-              </div>
+              </button>
             ))}
           </CardContent>
         </Card>

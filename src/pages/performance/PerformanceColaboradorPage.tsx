@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDashboardPerformanceColaborador } from "@/services/api";
-import { Star, Target, BookOpen, MessageSquare, TrendingUp, TrendingDown } from "lucide-react";
+import { Star, Target, BookOpen, MessageSquare, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
 import type { DashboardPerformanceColaborador } from "@/types";
 
 export function PerformanceColaboradorPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [data, setData] = useState<DashboardPerformanceColaborador | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,20 +50,47 @@ export function PerformanceColaboradorPage() {
           <CardContent className="pt-6 text-center">
             <Star className="h-6 w-6 text-indigo-600 mx-auto mb-2" />
             {data.ultimaAvaliacao ? (
-              <>
+              <Button variant="ghost" className="h-auto p-0 flex-col" onClick={() => data.colaboradorId && navigate(`/performance/profiles/${data.colaboradorId}`)}>
                 <p className="text-2xl font-bold text-indigo-600">{data.ultimaAvaliacao.notaFinal}</p>
                 <Badge className="mt-1">{data.ultimaAvaliacao.conceitoFinal}</Badge>
                 <p className="text-[10px] text-muted-foreground mt-1">{data.ultimaAvaliacao.cicloNome}</p>
-              </>
+              </Button>
             ) : (
               <p className="text-sm text-muted-foreground pt-2">Nenhuma avaliação</p>
             )}
             <p className="text-xs text-muted-foreground mt-1">Última avaliação</p>
           </CardContent>
         </Card>
-        <Card><CardContent className="pt-6 text-center"><Target className="h-6 w-6 text-blue-600 mx-auto mb-2" /><p className="text-2xl font-bold">{data.metasEmAndamento}</p><p className="text-xs text-muted-foreground">Metas em andamento</p></CardContent></Card>
-        <Card><CardContent className="pt-6 text-center"><BookOpen className="h-6 w-6 text-violet-600 mx-auto mb-2" /><p className="text-2xl font-bold">{data.pdiEmAndamento}</p><p className="text-xs text-muted-foreground">PDIs ativos</p></CardContent></Card>
-        <Card><CardContent className="pt-6 text-center"><MessageSquare className="h-6 w-6 text-cyan-600 mx-auto mb-2" /><p className="text-2xl font-bold">{data.feedbacksRecebidos}</p><p className="text-xs text-muted-foreground">Feedbacks recebidos</p></CardContent></Card>
+        <Card>
+          <CardContent
+            className="pt-6 text-center cursor-pointer hover:bg-accent/50 transition-colors rounded-xl"
+            onClick={() => data.colaboradorId && navigate(`/performance/profiles/${data.colaboradorId}`)}
+          >
+            <Target className="h-6 w-6 text-blue-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold">{data.metasEmAndamento}</p>
+            <p className="text-xs text-muted-foreground">Metas em andamento</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent
+            className="pt-6 text-center cursor-pointer hover:bg-accent/50 transition-colors rounded-xl"
+            onClick={() => data.colaboradorId && navigate(`/performance/profiles/${data.colaboradorId}`)}
+          >
+            <BookOpen className="h-6 w-6 text-violet-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold">{data.pdiEmAndamento}</p>
+            <p className="text-xs text-muted-foreground">PDIs ativos</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent
+            className="pt-6 text-center cursor-pointer hover:bg-accent/50 transition-colors rounded-xl"
+            onClick={() => data.colaboradorId && navigate(`/performance/profiles/${data.colaboradorId}`)}
+          >
+            <MessageSquare className="h-6 w-6 text-cyan-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold">{data.feedbacksRecebidos}</p>
+            <p className="text-xs text-muted-foreground">Feedbacks recebidos</p>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

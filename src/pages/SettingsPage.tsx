@@ -17,6 +17,17 @@ const FIELDS = [
   { key: "horario_fechamento", label: "Horário de Fechamento", type: "time", placeholder: "18:00" },
 ];
 
+const SMTP_FIELDS = [
+  { key: "smtp_host", label: "Servidor SMTP", type: "text", placeholder: "smtp.gmail.com" },
+  { key: "smtp_port", label: "Porta SMTP", type: "number", placeholder: "587" },
+  { key: "smtp_secure", label: "TLS/SSL", type: "select", options: [{ value: "true", label: "Sim" }, { value: "false", label: "Não" }] },
+  { key: "smtp_user", label: "Usuário SMTP", type: "text", placeholder: "seu@email.com" },
+  { key: "smtp_pass", label: "Senha SMTP", type: "password", placeholder: "********" },
+  { key: "smtp_from", label: "Remetente", type: "text", placeholder: "noreply@..." },
+];
+
+const ALL_KEYS = [...FIELDS, ...SMTP_FIELDS, { key: "notificacoes_ativas" }, { key: "email_notificacoes" }].map(f => f.key);
+
 export function SettingsPage() {
   const [settings, setSettings] = useState<SettingsMap>({});
   const [dirty, setDirty] = useState(false);
@@ -33,7 +44,7 @@ export function SettingsPage() {
     setSaving(true);
     try {
       const payload: Record<string, string> = {};
-      for (const f of FIELDS) payload[f.key] = settings[f.key]?.value || "";
+      for (const key of ALL_KEYS) payload[key] = settings[key]?.value || "";
       const result = await updateSettings(payload);
       setSettings(result);
       setDirty(false);
@@ -88,24 +99,57 @@ export function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="space-y-1.5">
               <Label>Notificações do Sistema</Label>
-              <Select
-                value={notifActive ? "true" : "false"}
-                onValueChange={(v) => set("notificacoes_ativas", v)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+              <Select value={notifActive ? "true" : "false"} onValueChange={(v) => set("notificacoes_ativas", v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="true">Ativadas</SelectItem>
                   <SelectItem value="false">Desativadas</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
-                Última atualização: {settings.notificacoes_ativas?.updatedAt
-                  ? new Date(settings.notificacoes_ativas.updatedAt).toLocaleString("pt-BR")
-                  : "—"}
-              </p>
             </div>
+            <div className="space-y-1.5">
+              <Label>Notificações por Email</Label>
+              <Select value={settings.email_notificacoes?.value || "false"} onValueChange={(v) => set("email_notificacoes", v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">Ativadas</SelectItem>
+                  <SelectItem value="false">Desativadas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Settings className="h-4 w-4" /> SMTP / Email
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {SMTP_FIELDS.map((f) => (
+              <div key={f.key} className="space-y-1.5">
+                <Label htmlFor={f.key}>{f.label}</Label>
+                {f.type === "select" ? (
+                  <Select value={settings[f.key]?.value || "false"} onValueChange={(v) => set(f.key, v)}>
+                    <SelectTrigger id={f.key}><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {f.options?.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    id={f.key}
+                    type={f.type}
+                    value={settings[f.key]?.value || ""}
+                    onChange={(e) => set(f.key, e.target.value)}
+                    placeholder={f.placeholder}
+                  />
+                )}
+              </div>
+            ))}
           </CardContent>
         </Card>
       </div>

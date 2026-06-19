@@ -50,7 +50,6 @@ export function ReportVisitorsPage() {
         description="Métricas de visitantes por período, status e departamento"
       />
 
-      {/* Summary Cards */}
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
@@ -72,7 +71,6 @@ export function ReportVisitorsPage() {
         ))}
       </div>
 
-      {/* Filters */}
       <Card className="mb-6">
         <CardContent className="p-4">
           <div className="flex flex-wrap items-end gap-4">
@@ -122,7 +120,6 @@ export function ReportVisitorsPage() {
         </CardContent>
       </Card>
 
-      {/* By Department */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="text-base">Visitantes por Departamento</CardTitle>
@@ -138,8 +135,12 @@ export function ReportVisitorsPage() {
               </TableHeader>
               <TableBody>
                 {data.byDepartment.map((d) => (
-                  <TableRow key={d.departmentId || "null"}>
-                    <TableCell>{d.departmentName || "Sem departamento"}</TableCell>
+                  <TableRow
+                    key={d.departmentId || "null"}
+                    className="cursor-pointer"
+                    onClick={() => d.departmentId && navigate(`/departments/${d.departmentId}/edit`)}
+                  >
+                    <TableCell className="font-medium hover:text-indigo-600 transition-colors">{d.departmentName || "Sem departamento"}</TableCell>
                     <TableCell className="text-right font-medium">{d.count}</TableCell>
                   </TableRow>
                 ))}
@@ -151,7 +152,6 @@ export function ReportVisitorsPage() {
         </CardContent>
       </Card>
 
-      {/* By Date */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Visitantes por Data</CardTitle>

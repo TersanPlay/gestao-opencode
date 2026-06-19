@@ -5,9 +5,10 @@ const { checkRole } = require("../middleware/rbac.cjs");
 
 router.get("/", checkRole("admin", "gestor", "assessor", "operator"), (req, res) => {
   let sql = `
-    SELECT m.*, u.name as responsavelNome
+    SELECT m.*, u.name as responsavelNome, c.nome as colaboradorNome
     FROM metas m
     LEFT JOIN users u ON m.responsavelId = u.id
+    LEFT JOIN colaboradores c ON m.colaboradorId = c.id
   `;
   const conditions = [];
   const params = [];
@@ -23,9 +24,10 @@ router.get("/", checkRole("admin", "gestor", "assessor", "operator"), (req, res)
 
 router.get("/:id", checkRole("admin", "gestor", "assessor", "operator"), (req, res) => {
   const meta = db.prepare(`
-    SELECT m.*, u.name as responsavelNome
+    SELECT m.*, u.name as responsavelNome, c.nome as colaboradorNome
     FROM metas m
     LEFT JOIN users u ON m.responsavelId = u.id
+    LEFT JOIN colaboradores c ON m.colaboradorId = c.id
     WHERE m.id = ?
   `).get(req.params.id);
   if (!meta) return res.status(404).json({ error: "Meta nao encontrada" });

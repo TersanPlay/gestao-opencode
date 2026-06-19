@@ -5,9 +5,10 @@ const { checkRole } = require("../middleware/rbac.cjs");
 
 router.get("/", checkRole("admin", "gestor", "assessor", "operator"), (req, res) => {
   let sql = `
-    SELECT p.*, u.name as responsavelNome
+    SELECT p.*, u.name as responsavelNome, c.nome as colaboradorNome
     FROM pdi p
     LEFT JOIN users u ON p.responsavelId = u.id
+    LEFT JOIN colaboradores c ON p.colaboradorId = c.id
   `;
   const conditions = [];
   const params = [];
@@ -23,9 +24,10 @@ router.get("/", checkRole("admin", "gestor", "assessor", "operator"), (req, res)
 
 router.get("/:id", checkRole("admin", "gestor", "assessor", "operator"), (req, res) => {
   const pdi = db.prepare(`
-    SELECT p.*, u.name as responsavelNome
+    SELECT p.*, u.name as responsavelNome, c.nome as colaboradorNome
     FROM pdi p
     LEFT JOIN users u ON p.responsavelId = u.id
+    LEFT JOIN colaboradores c ON p.colaboradorId = c.id
     WHERE p.id = ?
   `).get(req.params.id);
   if (!pdi) return res.status(404).json({ error: "PDI nao encontrado" });

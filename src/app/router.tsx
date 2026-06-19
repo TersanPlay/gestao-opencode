@@ -35,6 +35,7 @@ import { ImportProfilesPage } from "@/pages/performance/ImportProfilesPage";
 import { PerformanceRHPage } from "@/pages/performance/PerformanceRHPage";
 import { PerformanceGestorPage } from "@/pages/performance/PerformanceGestorPage";
 import { PerformanceColaboradorPage } from "@/pages/performance/PerformanceColaboradorPage";
+import { CursosPage } from "@/pages/performance/CursosPage";
 
 export function AppRouter() {
   return (
@@ -77,6 +78,7 @@ export function AppRouter() {
         <Route path="/performance/dashboard" element={<ProtectedRoute roles={["admin"]}><PerformanceRHPage /></ProtectedRoute>} />
         <Route path="/performance/team-dashboard" element={<ProtectedRoute roles={["gestor"]}><PerformanceGestorPage /></ProtectedRoute>} />
         <Route path="/performance/my-dashboard" element={<ProtectedRoute roles={["admin", "gestor", "assessor", "operator"]}><PerformanceColaboradorPage /></ProtectedRoute>} />
+        <Route path="/performance/cursos" element={<ProtectedRoute roles={["admin", "gestor", "assessor"]}><CursosPage /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute roles={["admin", "gestor", "assessor", "operator"]}><NotificationsPage /></ProtectedRoute>} />
         <Route path="/logs" element={<ProtectedRoute roles={["admin", "gestor"]}><LogsPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute roles={["admin"]}><SettingsPage /></ProtectedRoute>} />

@@ -127,6 +127,7 @@ router.get("/colaborador", checkRole("admin", "gestor", "assessor", "operator"),
   `).all(col.id);
 
   res.json({
+    colaboradorId: col.id,
     colaboradorNome: col.nome,
     ultimaAvaliacao: ultimaAvaliacao || null,
     metasEmAndamento: metasAndamento,

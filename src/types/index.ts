@@ -95,6 +95,7 @@ export interface Meta {
   colaboradorId: string;
   cicloId: string | null;
   nome: string;
+  colaboradorNome?: string;
   descricao: string;
   metaEsperada: string;
   resultadoObtido: string;
@@ -113,6 +114,7 @@ export interface PDI {
   colaboradorId: string;
   cicloId: string | null;
   objetivo: string;
+  colaboradorNome?: string;
   acoesPrevistas: string;
   prazo: string;
   responsavelId: string;
@@ -167,6 +169,7 @@ export interface CicloProgress {
 }
 
 export interface DashboardPerformanceColaborador {
+  colaboradorId?: string;
   colaboradorNome: string;
   ultimaAvaliacao: { notaFinal: number; conceitoFinal: string; cicloNome: string; createdAt: string } | null;
   metasEmAndamento: number;
@@ -338,6 +341,37 @@ export interface ImportColaborador {
   vinculo: string;
   dataAdmissao: string;
   dataDesligamento: string;
+}
+
+export interface Documento {
+  id: string;
+  nome: string;
+  tipo: string;
+  mimeType: string;
+  tamanho: number;
+  createdAt: string;
+}
+
+export interface Curso {
+  id: string;
+  nome: string;
+  descricao: string;
+  cargaHoraria: number;
+  colaboradorCount?: number;
+  createdAt: string;
+}
+
+export interface CursoColaborador {
+  id: string;
+  colaboradorId: string;
+  cursoId: string;
+  cursoNome: string;
+  cursoCargaHoraria: number;
+  dataInicio: string;
+  dataFim: string;
+  status: string;
+  certificado?: string;
+  createdAt: string;
 }
 
 export interface ImportResult {

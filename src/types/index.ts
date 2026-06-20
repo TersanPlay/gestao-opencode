@@ -80,7 +80,7 @@ export interface Competencia {
   descricao: string;
 }
 
-export interface AvaliacaoCompetencia {
+interface AvaliacaoCompetencia {
   id: string;
   avaliacaoId: string;
   competenciaId: string;
@@ -364,6 +364,7 @@ export interface Curso {
 export interface CursoColaborador {
   id: string;
   colaboradorId: string;
+  colaboradorNome?: string;
   cursoId: string;
   cursoNome: string;
   cursoCargaHoraria: number;

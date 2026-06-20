@@ -4,6 +4,8 @@ import { Bell, CheckCheck, Eye } from "lucide-react";
 import { getNotifications, getUnreadCount, markNotificationRead, markAllNotificationsRead } from "@/services/api";
 import type { Notification } from "@/types";
 
+const POLL_INTERVAL_MS = 30000;
+
 export function NotificationBell() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -13,11 +15,11 @@ export function NotificationBell() {
 
   useEffect(() => {
     function load() {
-      getUnreadCount().then((r) => setUnread(r.count)).catch(() => {});
-      getNotifications(true).then(setNotifications).catch(() => {});
+      getUnreadCount().then((r) => setUnread(r.count)).catch((err) => console.error(err));
+      getNotifications(true).then(setNotifications).catch((err) => console.error(err));
     }
     load();
-    const interval = setInterval(load, 30000);
+    const interval = setInterval(load, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
   }, []);
 

@@ -1,7 +1,10 @@
 .env
 node_modules/
+dist/
 
 *.log
+*.db-shm
+*.db-wal
 
 
 

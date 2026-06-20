@@ -162,10 +162,6 @@ function JollyDateRangePicker<T extends AriaDateValue>({
 }
 
 export {
-  DatePicker,
-  DatePickerContent,
-  DateRangePicker,
   JollyDatePicker,
   JollyDateRangePicker,
 }
-export type { JollyDatePickerProps, JollyDateRangePickerProps }

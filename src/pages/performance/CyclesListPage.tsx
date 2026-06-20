@@ -12,6 +12,9 @@ import { toast } from "sonner";
 import { Plus, Play, Square, Eye } from "lucide-react";
 import type { CicloAvaliacao } from "@/types";
 
+const PERCENT_COMPLETE = 100;
+const PERCENT_HALF = 50;
+
 export function CyclesListPage() {
   const navigate = useNavigate();
   const { user, can } = useAuth();
@@ -26,7 +29,7 @@ export function CyclesListPage() {
       setCiclos(ciclos);
       const pm: Record<string, { totalColaboradores: number; avaliacoesRealizadas: number; percentualConcluido: number }> = {};
       await Promise.all(ciclos.map(async (c) => {
-        try { pm[c.id] = await getCicloProgress(c.id); } catch {}
+        try { pm[c.id] = await getCicloProgress(c.id); } catch (err) { console.error(err); }
       }));
       setProgressMap(pm);
     }).finally(() => setLoading(false));
@@ -78,7 +81,7 @@ export function CyclesListPage() {
                         {prog ? (
                           <div className="flex items-center gap-2">
                             <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
-                              <div className="h-full rounded-full" style={{ width: `${prog.percentualConcluido}%`, backgroundColor: prog.percentualConcluido === 100 ? "#22c55e" : prog.percentualConcluido > 50 ? "#6366f1" : "#f59e0b" }} />
+                              <div className="h-full rounded-full" style={{ width: `${prog.percentualConcluido}%`, backgroundColor: prog.percentualConcluido === PERCENT_COMPLETE ? "#22c55e" : prog.percentualConcluido > PERCENT_HALF ? "#6366f1" : "#f59e0b" }} />
                             </div>
                             <span className="text-xs text-muted-foreground">{prog.avaliacoesRealizadas}/{prog.totalColaboradores}</span>
                           </div>

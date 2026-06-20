@@ -31,10 +31,12 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+const COLOR_HASH_SHIFT = 5;
+
 function getColor(name: string): string {
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    hash = name.charCodeAt(i) + ((hash << COLOR_HASH_SHIFT) - hash);
   }
   return colors[Math.abs(hash) % colors.length];
 }

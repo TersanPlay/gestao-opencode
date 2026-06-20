@@ -44,7 +44,7 @@ export function PDIFormPage() {
         await updatePDI(id!, payload);
         toast.success("PDI atualizado");
       } else {
-        await createPDI(payload as any);
+        await createPDI(payload);
         toast.success("PDI criado");
       }
       navigate(colaboradorId ? `/performance/profiles/${colaboradorId}` : "/performance/profiles");

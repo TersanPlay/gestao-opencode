@@ -79,7 +79,7 @@ export function ProfilePage() {
       updateUser(data.user);
       setForm((prev) => ({ ...prev, currentPassword: "", newPassword: "", confirmPassword: "" }));
       toast.success("Perfil atualizado");
-    } catch { toast.error("Erro ao salvar"); }
+    } catch (err) { console.error(err); toast.error("Erro ao salvar"); }
     finally { setSaving(false); }
   };
 

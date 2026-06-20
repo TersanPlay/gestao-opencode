@@ -57,6 +57,13 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Erro interno do servidor" });
 });
 
+// startup check — warn if orphaned SMTP settings exist in DB
+try {
+  const db = require("./db.cjs");
+  const orphan = db.prepare("SELECT COUNT(*) AS cnt FROM settings WHERE key LIKE 'smtp_%'").get();
+  if (orphan && orphan.cnt > 0) console.warn(`⚠ SMTP settings found in DB (${orphan.cnt} keys). SMTP now reads from .env only — move values to .env and remove from DB.`);
+} catch (_) { /* db not ready */ }
+
 app.listen(PORT, () => {
   console.log(`✓ Servidor rodando em http://localhost:${PORT}`);
 });

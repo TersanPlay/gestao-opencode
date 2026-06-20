@@ -74,20 +74,12 @@ export async function updateVisitor(id: string, data: Partial<Visitor>): Promise
   await request(`/visitors/${id}`, { method: "PUT", body: JSON.stringify(data) });
 }
 
-export async function deleteVisitor(id: string): Promise<void> {
-  await request(`/visitors/${id}`, { method: "DELETE" });
-}
-
 export async function checkDisposableEmail(email: string): Promise<{ email: string; disposable: boolean }> {
   return request(`/visitors/check-email?email=${encodeURIComponent(email)}`);
 }
 
 export async function getTimeline(visitorId: string): Promise<TimelineEvent[]> {
   return request(`/timeline/${visitorId}`);
-}
-
-export async function createTimelineEvent(data: Omit<TimelineEvent, "id">): Promise<{ id: number }> {
-  return request("/timeline", { method: "POST", body: JSON.stringify(data) });
 }
 
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
@@ -143,6 +135,10 @@ export async function updateSettings(data: Record<string, string>): Promise<Sett
   return request("/settings", { method: "PUT", body: JSON.stringify(data) });
 }
 
+export async function testEmail(to: string): Promise<{ message: string }> {
+  return request("/settings/test-email", { method: "POST", body: JSON.stringify({ to }) });
+}
+
 export async function getColaboradores(params?: { search?: string; departamentoId?: string; cargo?: string; status?: string; gestorId?: string; vinculo?: string; page?: number; pageSize?: number }): Promise<PaginatedResponse<Colaborador>> {
   const clean = params ? Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== undefined && v !== "")) : undefined;
   const qs = clean ? "?" + new URLSearchParams(clean as Record<string, string>).toString() : "";
@@ -159,10 +155,6 @@ export async function createColaborador(data: Partial<Colaborador>): Promise<Col
 
 export async function updateColaborador(id: string, data: Partial<Colaborador>): Promise<void> {
   await request(`/colaboradores/${id}`, { method: "PUT", body: JSON.stringify(data) });
-}
-
-export async function deleteColaborador(id: string): Promise<void> {
-  await request(`/colaboradores/${id}`, { method: "DELETE" });
 }
 
 export async function getCiclos(): Promise<CicloAvaliacao[]> {
@@ -281,10 +273,6 @@ export async function getPDIById(id: string): Promise<PDI> {
   return request(`/pdi/${id}`);
 }
 
-export async function deleteAvaliacao(id: string): Promise<void> {
-  await request(`/avaliacoes/${id}`, { method: "DELETE" });
-}
-
 export async function getDocumentos(colaboradorId: string): Promise<{ id: string; nome: string; tipo: string; mimeType: string; tamanho: number; createdAt: string }[]> {
   return request(`/documentos/${colaboradorId}`);
 }
@@ -319,10 +307,6 @@ export async function deleteDocumento(id: string): Promise<void> {
 
 export async function getCursos(): Promise<{ id: string; nome: string; descricao: string; cargaHoraria: number; createdAt: string }[]> {
   return request("/cursos");
-}
-
-export async function getCursoById(id: string): Promise<any> {
-  return request(`/cursos/${id}`);
 }
 
 export async function createCurso(data: { nome: string; descricao?: string; cargaHoraria?: number }): Promise<{ id: string }> {

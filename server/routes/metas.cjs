@@ -44,8 +44,7 @@ router.post("/", checkRole("admin", "gestor"), (req, res) => {
   `).run(colaboradorId, cicloId || null, nome, descricao || "", metaEsperada || "", prazo || "", responsavelId || null);
 
   const col = db.prepare("SELECT nome FROM colaboradores WHERE id = ?").get(colaboradorId);
-  db.prepare("INSERT INTO historico_colaborador (colaboradorId, tipo, descricao, dataReferencia) VALUES (?, ?, ?, ?)")
-    .run(colaboradorId, "meta", `Meta criada: ${nome}`, new Date().toISOString().slice(0, 10));
+  db.insertHistorico(colaboradorId, "meta", `Meta criada: ${nome}`, new Date().toISOString().slice(0, 10));
 
   res.status(201).json({ id: result.lastInsertRowid });
 });
@@ -70,8 +69,7 @@ router.put("/:id", checkRole("admin", "gestor"), (req, res) => {
   );
 
   if (status === "completed" && existing.status !== "completed") {
-    db.prepare("INSERT INTO historico_colaborador (colaboradorId, tipo, descricao, dataReferencia) VALUES (?, ?, ?, ?)")
-      .run(existing.colaboradorId, "meta", `Meta concluída: ${existing.nome}`, new Date().toISOString().slice(0, 10));
+    db.insertHistorico(existing.colaboradorId, "meta", `Meta concluída: ${existing.nome}`, new Date().toISOString().slice(0, 10));
   }
 
   res.json({ success: true });

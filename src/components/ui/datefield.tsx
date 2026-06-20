@@ -129,11 +129,6 @@ function JollyTimeField<T extends AriaTimeValue>({
 }
 
 export {
-  DateField,
-  DateSegment,
   DateInput,
-  TimeField,
-  JollyDateField,
   JollyTimeField,
 }
-export type { DateInputProps, JollyDateFieldProps, JollyTimeFieldProps }

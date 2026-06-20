@@ -4,6 +4,7 @@ const router = express.Router();
 const db = require("../db.cjs");
 const { checkRole, checkScope } = require("../middleware/rbac.cjs");
 const { notifyDepartmentUsers, notifyAdmins } = require("./notifications.cjs");
+const { sendVisitorEmail } = require("../services/email-templates.cjs");
 
 const INVERTEXTO_TOKEN = process.env.INVERTEXTO_TOKEN || "";
 
@@ -133,6 +134,10 @@ router.post("/", checkRole("admin", "gestor", "assessor", "operator"), checkScop
     scheduledAt || null
   );
   if (deptId) notifyDepartmentUsers(deptId, "visitor_created", "Novo visitante", `${name} foi cadastrado`, `/visitors/${result.lastInsertRowid}`);
+  const createdVisitor = db.prepare("SELECT * FROM visitors WHERE id = ?").get(result.lastInsertRowid);
+  if (createdVisitor && createdVisitor.email) {
+    sendVisitorEmail({ visitor: createdVisitor, templateKey: "email_template_welcome", extraVars: { data: new Date().toLocaleString("pt-BR") } }).catch(err => console.error(err));
+  }
   res.status(201).json({ id: result.lastInsertRowid, name });
 });
 
@@ -163,9 +168,35 @@ router.put("/:id", checkRole("admin", "gestor", "assessor", "operator"), async (
 
   if (req.body.status === "checking_in" && existing.departmentId) {
     notifyDepartmentUsers(existing.departmentId, "visitor_checkin", "Visitante chegou", `${existing.name} fez check-in`, `/visitors/${req.params.id}`);
+    const dept = db.prepare("SELECT name FROM departments WHERE id = ?").get(existing.departmentId);
+    if (existing.email) {
+      sendVisitorEmail({ visitor: existing, templateKey: "email_template_checkin", extraVars: { departamento_nome: dept?.name || "", data: new Date().toLocaleString("pt-BR") } }).catch(err => console.error(err));
+    }
   }
   if (req.body.status === "scheduled" && existing.departmentId) {
     notifyDepartmentUsers(existing.departmentId, "visitor_scheduled", "Visita agendada", `${existing.name} foi agendado`, `/visitors/${req.params.id}`);
+    const dept = db.prepare("SELECT name FROM departments WHERE id = ?").get(existing.departmentId);
+    if (existing.email) {
+      sendVisitorEmail({ visitor: existing, templateKey: "email_template_scheduled", extraVars: { departamento_nome: dept?.name || "", data: req.body.scheduledAt || new Date().toLocaleString("pt-BR") } }).catch(err => console.error(err));
+    }
+  }
+  if (req.body.status === "in_progress" && existing.departmentId) {
+    const dept = db.prepare("SELECT name FROM departments WHERE id = ?").get(existing.departmentId);
+    if (existing.email) {
+      sendVisitorEmail({ visitor: existing, templateKey: "email_template_started", extraVars: { departamento_nome: dept?.name || "", data: new Date().toLocaleString("pt-BR") } }).catch(err => console.error(err));
+    }
+  }
+  if (req.body.status === "completed" && existing.departmentId) {
+    const dept = db.prepare("SELECT name FROM departments WHERE id = ?").get(existing.departmentId);
+    if (existing.email) {
+      sendVisitorEmail({ visitor: existing, templateKey: "email_template_finished", extraVars: { departamento_nome: dept?.name || "", data: new Date().toLocaleString("pt-BR") } }).catch(err => console.error(err));
+    }
+  }
+  if (req.body.status === "cancelled") {
+    const dept = existing.departmentId ? db.prepare("SELECT name FROM departments WHERE id = ?").get(existing.departmentId) : null;
+    if (existing.email) {
+      sendVisitorEmail({ visitor: existing, templateKey: "email_template_cancelled", extraVars: { departamento_nome: dept?.name || "", data: existing.scheduledAt || new Date().toLocaleString("pt-BR") } }).catch(err => console.error(err));
+    }
   }
 
   res.json({ success: true });

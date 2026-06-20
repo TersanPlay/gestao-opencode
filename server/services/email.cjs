@@ -1,14 +1,14 @@
 const nodemailer = require("nodemailer");
-const db = require("../db.cjs");
-
-let transporter = null;
-let lastConfig = {};
 
 function getConfig() {
-  const settings = db.prepare("SELECT key, value FROM settings WHERE key LIKE 'smtp_%'").all();
-  const cfg = {};
-  for (const s of settings) cfg[s.key] = s.value;
-  return cfg;
+  return {
+    smtp_host: process.env.SMTP_HOST || "",
+    smtp_port: process.env.SMTP_PORT || "587",
+    smtp_secure: process.env.SMTP_SECURE || "false",
+    smtp_user: process.env.SMTP_USER || "",
+    smtp_pass: process.env.SMTP_PASS || "",
+    smtp_from: process.env.SMTP_FROM || "noreply@gestao-opencode.app",
+  };
 }
 
 function createTransporter(cfg) {
@@ -26,28 +26,34 @@ function createTransporter(cfg) {
   return nodemailer.createTransport(opts);
 }
 
+let transporter = null;
+let lastCfgKey = "";
 function getTransporter() {
   const cfg = getConfig();
-  const cfgKey = JSON.stringify(cfg);
-  if (cfgKey !== lastConfig.configKey || !transporter) {
+  const key = `${cfg.smtp_host}:${cfg.smtp_port}:${cfg.smtp_user}`;
+  if (key !== lastCfgKey || !transporter) {
     transporter = createTransporter(cfg);
-    lastConfig = { configKey: cfgKey, cfg };
+    lastCfgKey = key;
   }
   return transporter;
 }
 
 async function sendEmail({ to, subject, html }) {
-  const cfg = lastConfig.cfg || getConfig();
-  const from = cfg.smtp_from || "noreply@gestao-opencode.app";
+  const cfg = getConfig();
+  const from = cfg.smtp_from;
   const tr = getTransporter();
-  if (!tr) return { sent: false, error: "SMTP nao configurado" };
-  try {
-    await tr.sendMail({ from, to, subject, html });
-    return { sent: true };
-  } catch (err) {
-    console.error("Email send error:", err.message);
-    return { sent: false, error: err.message };
+
+  if (tr) {
+    try {
+      await tr.sendMail({ from, to, subject, html });
+      return { sent: true };
+    } catch (err) {
+      console.error("SMTP send error:", err.message);
+      return { sent: false, error: err.message };
+    }
   }
+
+  return { sent: false, error: "SMTP nao configurado" };
 }
 
 module.exports = { sendEmail };

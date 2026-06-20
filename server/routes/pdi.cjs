@@ -43,8 +43,7 @@ router.post("/", checkRole("admin", "gestor"), (req, res) => {
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `).run(colaboradorId, cicloId || null, objetivo, acoesPrevistas || "", prazo || "", responsavelId || null, observacoes || "");
 
-  db.prepare("INSERT INTO historico_colaborador (colaboradorId, tipo, descricao, dataReferencia) VALUES (?, ?, ?, ?)")
-    .run(colaboradorId, "pdi", `PDI criado: ${objetivo}`, new Date().toISOString().slice(0, 10));
+  db.insertHistorico(colaboradorId, "pdi", `PDI criado: ${objetivo}`, new Date().toISOString().slice(0, 10));
 
   res.status(201).json({ id: result.lastInsertRowid });
 });
@@ -67,8 +66,7 @@ router.put("/:id", checkRole("admin", "gestor"), (req, res) => {
   );
 
   if (status === "completed" && existing.status !== "completed") {
-    db.prepare("INSERT INTO historico_colaborador (colaboradorId, tipo, descricao, dataReferencia) VALUES (?, ?, ?, ?)")
-      .run(existing.colaboradorId, "pdi", `PDI concluído: ${existing.objetivo}`, new Date().toISOString().slice(0, 10));
+    db.insertHistorico(existing.colaboradorId, "pdi", `PDI concluído: ${existing.objetivo}`, new Date().toISOString().slice(0, 10));
   }
 
   res.json({ success: true });

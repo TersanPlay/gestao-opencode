@@ -1,4 +1,5 @@
 const HIERARCHY = { admin: 4, gestor: 3, assessor: 2, operator: 1 };
+const ALL_ROLES = ["admin", "gestor", "assessor", "operator"];
 
 function checkRole(...allowedRoles) {
   return (req, res, next) => {
@@ -22,4 +23,4 @@ function checkScope() {
   };
 }
 
-module.exports = { checkRole, checkScope };
+module.exports = { checkRole, checkScope, ALL_ROLES };

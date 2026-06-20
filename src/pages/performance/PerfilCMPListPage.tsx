@@ -24,6 +24,9 @@ const evalStatusConfig: Record<string, { label: string; variant: "success" | "wa
   nunca_avaliado: { label: "Nunca avaliado", variant: "default", icon: AlertCircle },
 };
 
+const PAGE_SIZE = 50;
+const PAGE_RANGE_PADDING = 2;
+
 export function PerfilCMPListPage() {
   const navigate = useNavigate();
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
@@ -68,7 +71,7 @@ export function PerfilCMPListPage() {
         gestorId: filtroGestor || undefined,
         vinculo: filtroVinculo || undefined,
         page,
-        pageSize: 50,
+        pageSize: PAGE_SIZE,
       }, true);
     }, 400);
     return () => clearTimeout(timer);
@@ -235,7 +238,7 @@ export function PerfilCMPListPage() {
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
+                    .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= PAGE_RANGE_PADDING)
                     .map((p, idx, arr) => (
                       <span key={p} className="flex items-center">
                         {idx > 0 && arr[idx - 1] !== p - 1 && <span className="px-1 text-muted-foreground">...</span>}

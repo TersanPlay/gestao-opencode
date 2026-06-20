@@ -93,7 +93,7 @@ export function VisitorFormPage() {
       try {
         const res = await checkDisposableEmail(email);
         setDisposable(res.disposable);
-      } catch { /* ignore */ }
+      } catch (err) { console.error(err); }
       setCheckingEmail(false);
     }, 500);
   };

@@ -21,6 +21,7 @@ const statusColors: Record<string, "success" | "warning" | "destructive" | "defa
   ativo: "success", afastado: "warning", desligado: "destructive",
 };
 
+const KB = 1024;
 const conceitoColors: Record<string, "success" | "warning" | "destructive" | "info" | "default"> = {
   Excelente: "success", Bom: "info", Regular: "warning", Ruim: "destructive", Insatisfatorio: "destructive",
 };
@@ -95,7 +96,7 @@ export function PerfilCMPDetailPage() {
     try {
       const data = await getAvaliacaoById(avId);
       setAvModal({ open: true, competencias: data.competencias || [], comentarios: data.comentarios || "", avaliador: data.avaliadorNome || "", ciclo: data.cicloNome || "" });
-    } catch { toast.error("Erro ao carregar avaliação"); }
+    } catch (err) { console.error(err); toast.error("Erro ao carregar avaliação"); }
   };
 
   const handleDeleteMeta = async (meta: Meta) => {
@@ -328,7 +329,7 @@ export function PerfilCMPDetailPage() {
                       await uploadDocumento(formData);
                       toast.success("Documento enviado");
                       loadData();
-                    } catch { toast.error("Erro ao enviar"); }
+                    } catch (err) { console.error(err); toast.error("Erro ao enviar"); }
                     e.target.value = "";
                   }} />
                   <Button variant="indigo" onClick={() => document.getElementById("doc-upload")?.click()}><Upload className="h-4 w-4 mr-1" /> Upload</Button>
@@ -344,12 +345,12 @@ export function PerfilCMPDetailPage() {
                       <TableRow key={d.id}>
                         <TableCell className="font-medium">{d.nome}</TableCell>
                         <TableCell><Badge variant="outline">{d.tipo}</Badge></TableCell>
-                        <TableCell className="text-sm">{(d.tamanho / 1024).toFixed(1)} KB</TableCell>
+                        <TableCell className="text-sm">{(d.tamanho / KB).toFixed(1)} KB</TableCell>
                         <TableCell className="text-sm">{new Date(d.createdAt).toLocaleDateString()}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1">
                             <Button variant="ghost" size="sm" onClick={() => downloadDocumento(d.id)} aria-label="Baixar"><Eye className="h-4 w-4" /></Button>
-                            {podeGerenciar && <Button variant="ghost" size="sm" onClick={async () => { try { await deleteDocumento(d.id); toast.success("Documento excluído"); loadData(); } catch { toast.error("Erro ao excluir"); } }} aria-label="Excluir"><Trash2 className="h-4 w-4 text-rose-500" /></Button>}
+                            {podeGerenciar && <Button variant="ghost" size="sm" onClick={async () => { try { await deleteDocumento(d.id); toast.success("Documento excluído"); loadData(); } catch (err) { console.error(err); toast.error("Erro ao excluir"); } }} aria-label="Excluir"><Trash2 className="h-4 w-4 text-rose-500" /></Button>}
                           </div>
                         </TableCell>
                       </TableRow>

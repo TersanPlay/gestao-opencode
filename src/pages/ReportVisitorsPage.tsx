@@ -13,9 +13,10 @@ import { getReportVisitors, getDepartments } from "@/services/api";
 import type { ReportVisitors, Department } from "@/types";
 import { ArrowLeft, BarChart3, Filter, Download } from "lucide-react";
 
+const MS_PER_DAY = 86400000;
 const today = new Date();
 const defaultRange = {
-  start: parseDate(new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)),
+  start: parseDate(new Date(Date.now() - 30 * MS_PER_DAY).toISOString().slice(0, 10)),
   end: parseDate(today.toISOString().slice(0, 10)),
 };
 

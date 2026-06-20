@@ -11,6 +11,8 @@ import type { User, Department } from "@/types";
 import { ArrowLeft, Save, Eye, EyeOff, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
+const PWD_LENGTH = 12;
+
 export function UserFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -32,7 +34,7 @@ export function UserFormPage() {
   function generatePassword() {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
     let pwd = "";
-    for (let i = 0; i < 12; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
+    for (let i = 0; i < PWD_LENGTH; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
     setForm((prev) => ({ ...prev, password: pwd, confirmPassword: pwd }));
   }
 
@@ -88,7 +90,7 @@ export function UserFormPage() {
         toast.success("Usuário criado");
       }
       navigate("/users");
-    } catch { toast.error("Erro ao salvar usuário"); }
+    } catch (err) { console.error(err); toast.error("Erro ao salvar usuário"); }
   };
 
   return (

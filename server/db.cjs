@@ -252,12 +252,12 @@ const SETTINGS_SEED = [
   { key: "horario_abertura", value: "08:00", description: "Horário de abertura da portaria" },
   { key: "horario_fechamento", value: "18:00", description: "Horário de fechamento da portaria" },
   { key: "email_notificacoes", value: "false", description: "Enviar notificações por email" },
-  { key: "smtp_host", value: "", description: "Servidor SMTP" },
-  { key: "smtp_port", value: "587", description: "Porta SMTP" },
-  { key: "smtp_secure", value: "false", description: "SMTP usar TLS" },
-  { key: "smtp_user", value: "", description: "Usuário SMTP" },
-  { key: "smtp_pass", value: "", description: "Senha SMTP" },
-  { key: "smtp_from", value: "noreply@gestao-opencode.app", description: "Remetente de email" },
+  { key: "email_template_welcome", value: "", description: "Template email - boas-vindas" },
+  { key: "email_template_scheduled", value: "", description: "Template email - visita agendada" },
+  { key: "email_template_checkin", value: "", description: "Template email - check-in" },
+  { key: "email_template_started", value: "", description: "Template email - visita iniciada" },
+  { key: "email_template_finished", value: "", description: "Template email - visita finalizada" },
+  { key: "email_template_cancelled", value: "", description: "Template email - visita cancelada" },
 ];
 
 const seedSettings = db.prepare("INSERT OR IGNORE INTO settings (key, value, description) VALUES (?, ?, ?)");
@@ -316,5 +316,42 @@ if (!existing) {
   ).run("Admin Principal", "admin.admin@admin.com", hash, "admin");
   console.log("✓ Usuário admin criado: admin.admin@admin.com");
 }
+
+db.insertHistorico = (colaboradorId, tipo, descricao, dataReferencia) => {
+  db.prepare("INSERT INTO historico_colaborador (colaboradorId, tipo, descricao, dataReferencia) VALUES (?, ?, ?, ?)").run(colaboradorId, tipo, descricao, dataReferencia || null);
+};
+
+db.buildColaboradorFilter = (query, alias = "c") => {
+  const conditions = [];
+  const params = [];
+
+  const { search, departamentoId, cargo, status, gestorId, vinculo } = query;
+  if (search) {
+    conditions.push(`(${alias}.nome LIKE ? OR ${alias}.matricula LIKE ? OR ${alias}.email LIKE ?)`);
+    params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+  }
+  if (departamentoId) {
+    conditions.push(`${alias}.departamentoId = ?`);
+    params.push(departamentoId);
+  }
+  if (status) {
+    conditions.push(`${alias}.status = ?`);
+    params.push(status);
+  }
+  if (vinculo) {
+    conditions.push(`${alias}.vinculo = ?`);
+    params.push(vinculo);
+  }
+  if (cargo) {
+    conditions.push(`${alias}.cargo = ?`);
+    params.push(cargo);
+  }
+  if (gestorId) {
+    conditions.push(`${alias}.gestorId = ?`);
+    params.push(gestorId);
+  }
+
+  return { conditions, params };
+};
 
 module.exports = db;

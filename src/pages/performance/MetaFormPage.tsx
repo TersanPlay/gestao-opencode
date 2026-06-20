@@ -46,7 +46,7 @@ export function MetaFormPage() {
         await updateMeta(id!, payload);
         toast.success("Meta atualizada");
       } else {
-        await createMeta(payload as any);
+        await createMeta(payload);
         toast.success("Meta criada");
       }
       navigate(colaboradorId ? `/performance/profiles/${colaboradorId}` : "/performance/profiles");

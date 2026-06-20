@@ -14,7 +14,7 @@ import { getCursos, createCurso, updateCurso, deleteCurso, getAllVinculos, vincu
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Users, Link, Unlink } from "lucide-react";
-import type { Curso, CursoColaborador } from "@/types";
+import type { Curso, CursoColaborador, Colaborador } from "@/types";
 
 export function CursosPage() {
   const { user } = useAuth();
@@ -33,7 +33,7 @@ export function CursosPage() {
   const [vinculoDialog, setVinculoDialog] = useState(false);
   const [vinculoCurso, setVinculoCurso] = useState<Curso | null>(null);
   const [vinculos, setVinculos] = useState<CursoColaborador[]>([]);
-  const [colaboradores, setColaboradores] = useState<any[]>([]);
+  const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
   const [novoColaboradorId, setNovoColaboradorId] = useState("");
   const [vinculoDataInicio, setVinculoDataInicio] = useState("");
   const [confirmDeleteVinculo, setConfirmDeleteVinculo] = useState<CursoColaborador | null>(null);
@@ -103,9 +103,9 @@ export function CursosPage() {
         getAllVinculos(),
         getColaboradores({}),
       ]);
-      setVinculos(vincs.filter((v: any) => v.cursoId === curso.id));
-      setColaboradores(cols.data || cols);
-    } catch { }
+      setVinculos(vincs.filter((v: CursoColaborador) => v.cursoId === curso.id));
+      setColaboradores(cols.data);
+    } catch (err) { console.error(err); }
   };
 
   const handleVincular = async () => {
@@ -116,7 +116,7 @@ export function CursosPage() {
       setNovoColaboradorId("");
       setVinculoDataInicio("");
       const vincs = await getAllVinculos();
-      setVinculos(vincs.filter((v: any) => v.cursoId === vinculoCurso.id));
+      setVinculos(vincs.filter((v: CursoColaborador) => v.cursoId === vinculoCurso.id));
       load();
     } catch (err: any) {
       toast.error(err.message || "Erro ao vincular");
@@ -131,7 +131,7 @@ export function CursosPage() {
       setConfirmDeleteVinculo(null);
       if (vinculoCurso) {
         const vincs = await getAllVinculos();
-        setVinculos(vincs.filter((v: any) => v.cursoId === vinculoCurso.id));
+        setVinculos(vincs.filter((v: CursoColaborador) => v.cursoId === vinculoCurso.id));
         load();
       }
     } catch (err: any) {
@@ -140,7 +140,7 @@ export function CursosPage() {
   };
 
   const vinculosColabIds = vinculos.map((v) => v.colaboradorId);
-  const colaboradoresDisponiveis = Array.isArray(colaboradores) ? colaboradores.filter((c: any) => !vinculosColabIds.includes(c.id)) : [];
+  const colaboradoresDisponiveis = Array.isArray(colaboradores) ? colaboradores.filter((c: Colaborador) => !vinculosColabIds.includes(c.id)) : [];
 
   return (
     <div className="space-y-6">
@@ -239,7 +239,7 @@ export function CursosPage() {
               <Select value={novoColaboradorId} onValueChange={setNovoColaboradorId}>
                 <SelectTrigger id="novo-colab"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
-                  {colaboradoresDisponiveis.map((c: any) => (
+                  {colaboradoresDisponiveis.map((c: Colaborador) => (
                     <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
                   ))}
                 </SelectContent>
@@ -269,7 +269,7 @@ export function CursosPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {vinculos.map((v: any) => (
+                  {vinculos.map((v: CursoColaborador) => (
                     <TableRow key={v.id}>
                       <TableCell className="font-medium">{v.colaboradorNome || "—"}</TableCell>
                       <TableCell>

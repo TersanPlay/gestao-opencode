@@ -224,7 +224,6 @@ function JollyRangeCalendar<T extends AriaDateValue>({
 }
 
 export {
-  Calendar,
   CalendarCell,
   CalendarGrid,
   CalendarGridBody,
@@ -232,7 +231,4 @@ export {
   CalendarHeaderCell,
   CalendarHeading,
   RangeCalendar,
-  JollyCalendar,
-  JollyRangeCalendar,
 }
-export type { JollyCalendarProps, JollyRangeCalendarProps }

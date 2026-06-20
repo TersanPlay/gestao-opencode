@@ -27,30 +27,53 @@ interface NavItem {
   roles: string[];
 }
 
-const allNavItems: NavItem[] = [
+const mainNavItems: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "gestor", "assessor", "operator"] },
   { to: "/users", label: "Usuários", icon: Users, roles: ["admin", "gestor"] },
   { to: "/departments", label: "Departamentos", icon: Building2, roles: ["admin", "gestor"] },
   { to: "/visitors", label: "Visitantes", icon: UserCheck, roles: ["admin", "gestor", "assessor", "operator"] },
   { to: "/visitors/schedule", label: "Agendamento", icon: CalendarCheck, roles: ["admin", "gestor", "assessor", "operator"] },
   { to: "/reports", label: "Relatórios", icon: BarChart3, roles: ["admin", "gestor", "assessor"] },
+  { to: "/notifications", label: "Notificações", icon: Bell, roles: ["admin", "gestor", "assessor", "operator"] },
+  { to: "/logs", label: "Auditoria", icon: Shield, roles: ["admin"] },
+  { to: "/settings", label: "Configurações", icon: Settings, roles: ["admin"] },
+];
+
+const performanceNavItems: NavItem[] = [
   { to: "/performance/my-dashboard", label: "Meu Desempenho", icon: User, roles: ["admin", "gestor", "assessor", "operator"] },
   { to: "/performance/profiles", label: "Perfil-CMP", icon: ClipboardList, roles: ["admin", "gestor", "assessor"] },
   { to: "/performance/profiles/import", label: "Importar", icon: Upload, roles: ["admin", "gestor"] },
   { to: "/performance/dashboard", label: "Dashboard RH", icon: LayoutDashboard, roles: ["admin"] },
   { to: "/performance/team-dashboard", label: "Dashboard Equipe", icon: Users, roles: ["gestor"] },
   { to: "/performance/cycles", label: "Ciclos", icon: CalendarCheck, roles: ["admin", "gestor"] },
-  { to: "/notifications", label: "Notificações", icon: Bell, roles: ["admin", "gestor", "assessor", "operator"] },
-  { to: "/logs", label: "Auditoria", icon: Shield, roles: ["admin"] },
-  { to: "/settings", label: "Configurações", icon: Settings, roles: ["admin"] },
   { to: "/performance/cursos", label: "Cursos", icon: BookOpen, roles: ["admin", "gestor", "assessor"] },
 ];
+
+function NavLinkItem({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
+  return (
+    <NavLink
+      to={item.to}
+      className={({ isActive }) =>
+        cn(
+          "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+          isActive
+            ? "bg-indigo-50 text-indigo-700"
+            : "text-muted-foreground hover:bg-accent hover:text-foreground"
+        )
+      }
+    >
+      <item.icon className="h-5 w-5 shrink-0" />
+      {!collapsed && <span>{item.label}</span>}
+    </NavLink>
+  );
+}
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const { user } = useAuth();
 
-  const navItems = allNavItems.filter((item) => user && item.roles.includes(user.role));
+  const mainItems = mainNavItems.filter((item) => user && item.roles.includes(user.role));
+  const perfItems = performanceNavItems.filter((item) => user && item.roles.includes(user.role));
 
   return (
     <aside
@@ -70,24 +93,24 @@ export function Sidebar() {
         )}
       </div>
 
-      <nav className="flex-1 space-y-1 p-3">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                isActive
-                  ? "bg-indigo-50 text-indigo-700"
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
-              )
-            }
-          >
-            <item.icon className="h-5 w-5 shrink-0" />
-            {!collapsed && <span>{item.label}</span>}
-          </NavLink>
+      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+        {mainItems.map((item) => (
+          <NavLinkItem key={item.to} item={item} collapsed={collapsed} />
         ))}
+
+        {perfItems.length > 0 && (
+          <>
+            <div className={cn("border-t border-border", collapsed ? "my-2" : "my-3")} />
+            {!collapsed && (
+              <span className="block px-3 pb-1 pt-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Avaliação de Desempenho
+              </span>
+            )}
+            {perfItems.map((item) => (
+              <NavLinkItem key={item.to} item={item} collapsed={collapsed} />
+            ))}
+          </>
+        )}
       </nav>
 
       <div className="border-t border-black/5 p-3">

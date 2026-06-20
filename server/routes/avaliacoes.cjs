@@ -87,8 +87,7 @@ router.put("/:id/finalizar", checkRole("admin", "gestor"), (req, res) => {
     .run(notaFinal, conceitoFinal, req.params.id);
 
   const col = db.prepare("SELECT nome FROM colaboradores WHERE id = ?").get(existing.colaboradorId);
-  db.prepare("INSERT INTO historico_colaborador (colaboradorId, tipo, descricao, dataReferencia) VALUES (?, ?, ?, ?)")
-    .run(existing.colaboradorId, "avaliacao", `Avaliação concluída - Nota: ${notaFinal} (${conceitoFinal})`, new Date().toISOString().slice(0, 10));
+  db.insertHistorico(existing.colaboradorId, "avaliacao", `Avaliação concluída - Nota: ${notaFinal} (${conceitoFinal})`, new Date().toISOString().slice(0, 10));
 
   res.json({ success: true, notaFinal, conceitoFinal });
 });

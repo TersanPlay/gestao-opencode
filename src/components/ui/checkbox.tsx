@@ -54,4 +54,4 @@ function Checkbox({ className, children, label, description, ...props }: Checkbo
   )
 }
 
-export { Checkbox, type CheckboxProps }
+export { Checkbox }

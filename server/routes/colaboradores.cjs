@@ -12,31 +12,10 @@ router.get("/", checkRole("admin", "gestor", "assessor"), checkScope(), (req, re
     params.push(req.scopeDepartmentId);
   }
 
-  const { search, departamentoId, cargo, status, gestorId, vinculo, page, pageSize } = req.query;
-  if (search) {
-    conditions.push("(c.nome LIKE ? OR c.matricula LIKE ? OR c.email LIKE ?)");
-    params.push(`%${search}%`, `%${search}%`, `%${search}%`);
-  }
-  if (departamentoId) {
-    conditions.push("c.departamentoId = ?");
-    params.push(departamentoId);
-  }
-  if (status) {
-    conditions.push("c.status = ?");
-    params.push(status);
-  }
-  if (vinculo) {
-    conditions.push("c.vinculo = ?");
-    params.push(vinculo);
-  }
-  if (cargo) {
-    conditions.push("c.cargo = ?");
-    params.push(cargo);
-  }
-  if (gestorId) {
-    conditions.push("c.gestorId = ?");
-    params.push(gestorId);
-  }
+  const { page, pageSize } = req.query;
+  const filter = db.buildColaboradorFilter(req.query);
+  conditions.push(...filter.conditions);
+  params.push(...filter.params);
 
   const where = conditions.length > 0 ? " WHERE " + conditions.join(" AND ") : "";
 
@@ -133,7 +112,7 @@ router.post("/", checkRole("admin", "gestor"), (req, res) => {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(nome, cpf || "", matricula || "", cargo || "", departamentoId || null, funcao || "", cargaHoraria || 0, ano || null, mes || null, vinculo || "", dataAdmissao || "", dataDesligamento || null, gestorId || null, userId || null, foto || null, status || "ativo");
 
-  db.prepare("INSERT INTO historico_colaborador (colaboradorId, tipo, descricao, dataReferencia) VALUES (?, ?, ?, ?)").run(result.lastInsertRowid, "admissao", `Admissão de ${nome}`, dataAdmissao || "");
+  db.insertHistorico(result.lastInsertRowid, "admissao", `Admissão de ${nome}`, dataAdmissao || "");
 
   res.status(201).json({ id: result.lastInsertRowid, nome });
 });
@@ -161,7 +140,7 @@ router.put("/:id", checkRole("admin", "gestor"), (req, res) => {
   );
 
   if (status === "desligado" && existing.status !== "desligado") {
-    db.prepare("INSERT INTO historico_colaborador (colaboradorId, tipo, descricao, dataReferencia) VALUES (?, ?, ?, ?)").run(req.params.id, "desligamento", `Desligamento de ${existing.nome}`, dataDesligamento || "");
+    db.insertHistorico(req.params.id, "desligamento", `Desligamento de ${existing.nome}`, dataDesligamento || "");
   }
 
   res.json({ success: true });
@@ -245,12 +224,7 @@ router.post("/import", checkRole("admin", "gestor"), (req, res) => {
         row.dataDesligamento ? row.dataDesligamento.toString().trim() : null
       );
 
-      db.prepare("INSERT INTO historico_colaborador (colaboradorId, tipo, descricao, dataReferencia) VALUES (?, ?, ?, ?)").run(
-        result.lastInsertRowid,
-        "admissao",
-        `Admissão de ${row.nome.toString().trim()}`,
-        (row.dataAdmissao || "").toString().trim()
-      );
+      db.insertHistorico(result.lastInsertRowid, "admissao", `Admissão de ${row.nome.toString().trim()}`, (row.dataAdmissao || "").toString().trim());
 
       imported++;
     }

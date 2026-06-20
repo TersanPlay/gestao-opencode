@@ -34,8 +34,7 @@ router.post("/", checkRole("admin", "gestor", "assessor", "operator"), (req, res
     .run(colaboradorId, req.user.id, tipo || "gestor", comentario);
 
   const autorNome = req.user.name || db.prepare("SELECT name FROM users WHERE id = ?").get(req.user.id)?.name || "Desconhecido";
-  db.prepare("INSERT INTO historico_colaborador (colaboradorId, tipo, descricao, dataReferencia) VALUES (?, ?, ?, ?)")
-    .run(colaboradorId, "feedback", `Feedback registrado por ${autorNome}`, new Date().toISOString().slice(0, 10));
+  db.insertHistorico(colaboradorId, "feedback", `Feedback registrado por ${autorNome}`, new Date().toISOString().slice(0, 10));
 
   res.status(201).json({ id: result.lastInsertRowid });
 });

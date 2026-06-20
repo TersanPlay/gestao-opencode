@@ -12,16 +12,9 @@ router.get("/colaboradores", checkRole("admin", "gestor", "assessor"), checkScop
     params.push(req.scopeDepartmentId);
   }
 
-  const { search, departamentoId, cargo, status, gestorId, vinculo } = req.query;
-  if (search) {
-    conditions.push("(c.nome LIKE ? OR c.matricula LIKE ? OR c.email LIKE ?)");
-    params.push(`%${search}%`, `%${search}%`, `%${search}%`);
-  }
-  if (departamentoId) { conditions.push("c.departamentoId = ?"); params.push(departamentoId); }
-  if (status) { conditions.push("c.status = ?"); params.push(status); }
-  if (vinculo) { conditions.push("c.vinculo = ?"); params.push(vinculo); }
-  if (cargo) { conditions.push("c.cargo = ?"); params.push(cargo); }
-  if (gestorId) { conditions.push("c.gestorId = ?"); params.push(gestorId); }
+  const filter = db.buildColaboradorFilter(req.query);
+  conditions.push(...filter.conditions);
+  params.push(...filter.params);
 
   const where = conditions.length > 0 ? " WHERE " + conditions.join(" AND ") : "";
 

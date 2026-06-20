@@ -63,11 +63,12 @@ export function SettingsPage() {
   const [selectedTemplate, setSelectedTemplate] = useState("email_template_welcome");
 
   function getTemplateParts(key: string) {
-    const raw = settings[key]?.value || "";
+    const raw = settings[key]?.value;
+    if (!raw) return { subject: "", body: "" };
     try {
       const parsed = JSON.parse(raw);
       return { subject: parsed.subject || "", body: parsed.body || "" };
-    } catch (err) { console.error(err); }
+    } catch { /* raw nao e JSON (ex: string plain) */ }
     return { subject: "", body: raw };
   }
 
